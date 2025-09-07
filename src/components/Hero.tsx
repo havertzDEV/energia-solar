@@ -55,16 +55,6 @@ export const Hero = () => {
               de energia solar de alta qualidade. Invista no futuro sustentável da sua família.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button variant="default" size="lg" className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-8">
-                Solicitar Orçamento
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button variant="secondary" size="lg">
-                Calcular Economia
-                <Calculator className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
