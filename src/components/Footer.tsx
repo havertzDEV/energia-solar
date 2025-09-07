@@ -195,7 +195,7 @@ export const Footer = () => {
                 <MapPin className="h-5 w-5 text-primary mt-1" />
                 <div className="text-white/80">
                   <div>Rua das Energias, 123</div>
-                  <div>Vila Solar, São Paulo - SP</div>
+                  <div>São luís - MA</div>
                   <div>CEP: 01234-567</div>
                 </div>
               </li>
@@ -203,7 +203,7 @@ export const Footer = () => {
               <li className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-primary" />
                 <div className="text-white/80">
-                  <div>(11) 99999-9999</div>
+                  <div>(98) 99161-6381</div>
                   <div className="text-sm">WhatsApp</div>
                 </div>
               </li>
@@ -211,7 +211,7 @@ export const Footer = () => {
               <li className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-primary" />
                 <div className="text-white/80">
-                  <div>contato@solartech.com</div>
+                  <div>isollarenergyengenharia@gmail.com</div>
                   <div className="text-sm">Comercial</div>
                 </div>
               </li>
@@ -232,7 +232,7 @@ export const Footer = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-white/60 text-sm">
-              © 2024 SolarTech. Todos os direitos reservados.
+              © 2022 Isollar. Todos os direitos reservados.
             </div>
             
             <div className="flex gap-6 text-sm">

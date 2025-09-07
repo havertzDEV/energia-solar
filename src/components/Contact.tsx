@@ -74,7 +74,7 @@ export const Contact = () => {
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <div className="font-medium">(11) 99999-9999</div>
+                    <div className="font-medium">(98) 99161-6381</div>
                     <div className="text-sm text-muted-foreground">WhatsApp</div>
                   </div>
                 </div>
@@ -82,7 +82,7 @@ export const Contact = () => {
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <div className="font-medium">contato@solartech.com</div>
+                    <div className="font-medium">isollarenergyengenharia@gmail.com</div>
                     <div className="text-sm text-muted-foreground">Email comercial</div>
                   </div>
                 </div>
@@ -92,7 +92,7 @@ export const Contact = () => {
                   <div>
                     <div className="font-medium">Rua das Energias, 123</div>
                     <div className="text-sm text-muted-foreground">
-                      Vila Solar, São Paulo - SP<br />
+                      São Luís - MA<br />
                       CEP: 01234-567
                     </div>
                   </div>
