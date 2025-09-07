@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SolarTariff {
   id: string;
@@ -18,61 +18,68 @@ export interface SolarTariff {
   updated_at: string;
 }
 
-export const useSolarTariffs = (region: string = "Maranhão", state: string = "MA") => {
-  const [tariffs, setTariffs] = useState<SolarTariff | null>(null);
+export const useSolarTariffs = (region?: string, state?: string) => {
+  const [tariffs, setTariffs] = useState<SolarTariff[]>([]);
+  const [currentTariff, setCurrentTariff] = useState<SolarTariff | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Fetch initial data
-    const fetchTariffs = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('solar_tariffs')
-          .select('*')
-          .eq('region', region)
-          .eq('state', state)
-          .eq('is_active', true)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
+  const fetchTariffs = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('solar_tariffs')
+        .select('*')
+        .eq('is_active', true);
 
-        if (error) {
-          console.error('Error fetching tariffs:', error);
-          setError(error.message);
-          return;
-        }
-
-        setTariffs(data);
-        setError(null);
-      } catch (err) {
-        console.error('Error:', err);
-        setError('Erro ao carregar tarifas');
-      } finally {
-        setLoading(false);
+      if (region) {
+        query = query.eq('region', region);
       }
-    };
+      if (state) {
+        query = query.eq('state', state);
+      }
 
+      const { data, error: fetchError } = await query.order('updated_at', { ascending: false });
+
+      if (fetchError) {
+        setError(fetchError.message);
+        return;
+      }
+
+      setTariffs(data || []);
+      
+      // Set current tariff to the most recent one for the region
+      if (data && data.length > 0) {
+        setCurrentTariff(data[0]);
+      }
+
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao buscar tarifas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTariffs();
+  }, [region, state]);
 
-    // Set up real-time subscription
+  // Setup realtime subscription
+  useEffect(() => {
     const channel = supabase
-      .channel('solar-tariffs-changes')
+      .channel('solar_tariffs_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'solar_tariffs',
-          filter: `region=eq.${region},state=eq.${state},is_active=eq.true`
+          filter: 'is_active=eq.true'
         },
         (payload) => {
-          console.log('Real-time tariff update received:', payload);
-          
-          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-            setTariffs(payload.new as SolarTariff);
-          }
+          console.log('Tariff updated:', payload);
+          fetchTariffs(); // Refetch when data changes
         }
       )
       .subscribe();
@@ -82,5 +89,11 @@ export const useSolarTariffs = (region: string = "Maranhão", state: string = "M
     };
   }, [region, state]);
 
-  return { tariffs, loading, error };
+  return {
+    tariffs,
+    currentTariff,
+    loading,
+    error,
+    refetch: fetchTariffs
+  };
 };

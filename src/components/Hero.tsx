@@ -1,27 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calculator, ArrowRight, Zap, TrendingUp, Wifi, WifiOff } from "lucide-react";
 import heroImage from "@/assets/hero-solar.jpg";
 import { useSolarTariffs } from "@/hooks/useSolarTariffs";
-import { useSolarCalculator } from "@/hooks/useSolarCalculator";
+import { calculateSolarSavings, SolarSavings } from "@/utils/solarCalculations";
 
 export const Hero = () => {
   const [monthlyBill, setMonthlyBill] = useState("");
   const [consumption, setConsumption] = useState("");
+  const [savings, setSavings] = useState<SolarSavings | null>(null);
   
   // Real-time tariffs from Supabase
-  const { tariffs, loading: tariffsLoading, error: tariffsError } = useSolarTariffs("Maranhão", "MA");
-  
-  // Real-time calculation
-  const savings = useSolarCalculator(
-    parseFloat(monthlyBill) || 0,
-    parseFloat(consumption) || 0,
-    tariffs
-  );
+  const { currentTariff, loading: tariffsLoading, error: tariffsError } = useSolarTariffs("Maranhão", "MA");
 
   // Real-time status indicator
-  const isConnected = !tariffsLoading && !tariffsError && tariffs;
+  const isConnected = !tariffsLoading && !tariffsError && currentTariff;
+
+  // Calculate savings automatically when inputs or tariffs change
+  useEffect(() => {
+    if (currentTariff && (monthlyBill || consumption)) {
+      const bill = parseFloat(monthlyBill) || 0;
+      const kwh = parseFloat(consumption) || 0;
+      const result = calculateSolarSavings(bill, kwh, currentTariff);
+      setSavings(result);
+    } else {
+      setSavings(null);
+    }
+  }, [currentTariff, monthlyBill, consumption]);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
@@ -134,17 +140,17 @@ export const Hero = () => {
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Zap className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium text-foreground">
-                    Cálculo Automático - {tariffs?.utility_company || "Equatorial Maranhão"}
-                  </span>
+                   <span className="text-sm font-medium text-foreground">
+                     Cálculo Automático - {currentTariff?.utility_company || "Equatorial Maranhão"}
+                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Tarifas atualizadas em tempo real • Última atualização: {" "}
-                  {tariffs?.updated_at 
-                    ? new Date(tariffs.updated_at).toLocaleDateString('pt-BR')
-                    : "Carregando..."
-                  }
-                </p>
+                 <p className="text-xs text-muted-foreground">
+                   Tarifas atualizadas em tempo real • Última atualização: {" "}
+                   {currentTariff?.updated_at 
+                     ? new Date(currentTariff.updated_at).toLocaleDateString('pt-BR')
+                     : "Carregando..."
+                   }
+                 </p>
               </div>
 
               {savings && (
@@ -187,10 +193,10 @@ export const Hero = () => {
                       </div>
                     </div>
                     
-                    <p className="text-xs text-muted-foreground mt-4">
-                      * Cálculo baseado nas tarifas da {tariffs?.utility_company || "Equatorial Maranhão"} 
-                      atualizadas em tempo real • Irradiação: {tariffs?.solar_irradiation || 5.5} kWh/m²/dia
-                    </p>
+                     <p className="text-xs text-muted-foreground mt-4">
+                       * Cálculo baseado nas tarifas da {currentTariff?.utility_company || "Equatorial Maranhão"} 
+                       atualizadas em tempo real • Irradiação: {currentTariff?.solar_irradiation || 5.5} kWh/m²/dia
+                     </p>
                   </div>
                 </div>
               )}
