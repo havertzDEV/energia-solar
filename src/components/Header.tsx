@@ -12,7 +12,7 @@ export const Header = () => {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Sun className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary">SolarTech</span>
+            <span className="text-2xl font-bold text-primary">Isollar Energy Engenharia</span>
           </div>
 
           {/* Desktop Navigation */}
