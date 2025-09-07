@@ -6,14 +6,59 @@ import heroImage from "@/assets/hero-solar.jpg";
 
 export const Hero = () => {
   const [monthlyBill, setMonthlyBill] = useState("");
-  const [savings, setSavings] = useState<number | null>(null);
+  const [consumption, setConsumption] = useState("");
+  const [savings, setSavings] = useState<{
+    monthly: number;
+    yearly: number;
+    systemSize: number;
+    investment: number;
+    payback: number;
+  } | null>(null);
 
   const calculateSavings = () => {
     const bill = parseFloat(monthlyBill);
-    if (bill > 0) {
-      const yearlyBill = bill * 12;
-      const yearlySavings = yearlyBill * 0.85; // 85% de economia
-      setSavings(yearlySavings);
+    const kwh = parseFloat(consumption);
+    
+    if (bill > 0 || kwh > 0) {
+      // Tarifas específicas do Maranhão (Equatorial) - 2024/2025
+      const tarifaEnergia = 0.52840; // R$/kWh - TE (Tarifa de Energia)
+      const tarifaDistribuicao = 0.31450; // R$/kWh - TUSD (Tarifa de Uso do Sistema de Distribuição)
+      const tarifaTotal = tarifaEnergia + tarifaDistribuicao; // R$ 0,8429/kWh
+      
+      // Impostos: ICMS (27% no MA), PIS (1,65%), COFINS (7,6%)
+      const impostos = 1 + 0.27 + 0.0165 + 0.076; // 36,35% total
+      const tarifaComImpostos = tarifaTotal * impostos; // ~R$ 1,15/kWh
+      
+      let monthlyConsumption: number;
+      
+      if (kwh > 0) {
+        monthlyConsumption = kwh;
+      } else {
+        // Estimar consumo baseado na conta
+        monthlyConsumption = bill / tarifaComImpostos;
+      }
+      
+      // Economia com energia solar (95% da conta - taxa mínima permanece)
+      const monthlyEconomy = bill * 0.95;
+      const yearlyEconomy = monthlyEconomy * 12;
+      
+      // Dimensionamento do sistema (considerando irradiação do Maranhão: 5,5 kWh/m²/dia)
+      const dailyGeneration = monthlyConsumption / 30;
+      const systemSize = dailyGeneration / 5.5; // kWp necessário
+      
+      // Investimento estimado (R$ 4.500 por kWp instalado no Maranhão)
+      const investmentCost = systemSize * 4500;
+      
+      // Payback (tempo de retorno do investimento)
+      const paybackYears = investmentCost / yearlyEconomy;
+      
+      setSavings({
+        monthly: monthlyEconomy,
+        yearly: yearlyEconomy,
+        systemSize: Math.round(systemSize * 100) / 100,
+        investment: investmentCost,
+        payback: Math.round(paybackYears * 10) / 10
+      });
     }
   };
 
@@ -94,31 +139,76 @@ export const Hero = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Ou informe seu consumo mensal (kWh) - Opcional
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Ex: 300 kWh"
+                  value={consumption}
+                  onChange={(e) => setConsumption(e.target.value)}
+                  className="text-lg"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Encontre este valor na sua conta de luz da Equatorial
+                </p>
+              </div>
+
               <Button 
                 onClick={calculateSavings}
                 className="w-full bg-gradient-solar text-white font-semibold"
                 size="lg"
               >
                 <Zap className="mr-2 h-5 w-5" />
-                Calcular Economia
+                Calcular Economia - Maranhão
               </Button>
 
               {savings && (
-                <div className="bg-accent/10 rounded-xl p-6 border border-accent/20">
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="h-6 w-6 text-accent" />
-                    <h3 className="text-lg font-semibold text-accent">
-                      Sua Economia Anual
-                    </h3>
+                <div className="space-y-4">
+                  <div className="bg-accent/10 rounded-xl p-6 border border-accent/20">
+                    <div className="flex items-center gap-2 mb-4">
+                      <TrendingUp className="h-6 w-6 text-accent" />
+                      <h3 className="text-lg font-semibold text-accent">
+                        Seu Orçamento Personalizado
+                      </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Economia Mensal</p>
+                        <p className="text-xl font-bold text-accent">
+                          R$ {savings.monthly.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Economia Anual</p>
+                        <p className="text-xl font-bold text-accent">
+                          R$ {savings.yearly.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Sistema recomendado:</span>
+                        <span className="font-semibold">{savings.systemSize} kWp</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Investimento estimado:</span>
+                        <span className="font-semibold">R$ {savings.investment.toLocaleString('pt-BR')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Retorno do investimento:</span>
+                        <span className="font-semibold text-green-600">{savings.payback} anos</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground mt-4">
+                      * Cálculo baseado nas tarifas da Equatorial Maranhão (2024/2025) 
+                      e irradiação solar média do estado.
+                    </p>
                   </div>
-                  
-                  <div className="text-3xl font-bold text-accent mb-2">
-                    R$ {savings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground">
-                    Com energia solar, você pode economizar esse valor todos os anos!
-                  </p>
                 </div>
               )}
             </div>
