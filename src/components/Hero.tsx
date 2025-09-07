@@ -113,7 +113,7 @@ export const Hero = () => {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Ou informe seu consumo mensal (kWh) - Opcional
+                  Informe seu consumo mensal (kWh)
                 </label>
                 <Input
                   type="number"
