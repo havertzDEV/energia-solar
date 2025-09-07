@@ -1,66 +1,27 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calculator, ArrowRight, Zap, TrendingUp } from "lucide-react";
+import { Calculator, ArrowRight, Zap, TrendingUp, Wifi, WifiOff } from "lucide-react";
 import heroImage from "@/assets/hero-solar.jpg";
+import { useSolarTariffs } from "@/hooks/useSolarTariffs";
+import { useSolarCalculator } from "@/hooks/useSolarCalculator";
 
 export const Hero = () => {
   const [monthlyBill, setMonthlyBill] = useState("");
   const [consumption, setConsumption] = useState("");
-  const [savings, setSavings] = useState<{
-    monthly: number;
-    yearly: number;
-    systemSize: number;
-    investment: number;
-    payback: number;
-  } | null>(null);
+  
+  // Real-time tariffs from Supabase
+  const { tariffs, loading: tariffsLoading, error: tariffsError } = useSolarTariffs("Maranhão", "MA");
+  
+  // Real-time calculation
+  const savings = useSolarCalculator(
+    parseFloat(monthlyBill) || 0,
+    parseFloat(consumption) || 0,
+    tariffs
+  );
 
-  const calculateSavings = () => {
-    const bill = parseFloat(monthlyBill);
-    const kwh = parseFloat(consumption);
-    
-    if (bill > 0 || kwh > 0) {
-      // Tarifas específicas do Maranhão (Equatorial) - 2024/2025
-      const tarifaEnergia = 0.52840; // R$/kWh - TE (Tarifa de Energia)
-      const tarifaDistribuicao = 0.31450; // R$/kWh - TUSD (Tarifa de Uso do Sistema de Distribuição)
-      const tarifaTotal = tarifaEnergia + tarifaDistribuicao; // R$ 0,8429/kWh
-      
-      // Impostos: ICMS (27% no MA), PIS (1,65%), COFINS (7,6%)
-      const impostos = 1 + 0.27 + 0.0165 + 0.076; // 36,35% total
-      const tarifaComImpostos = tarifaTotal * impostos; // ~R$ 1,15/kWh
-      
-      let monthlyConsumption: number;
-      
-      if (kwh > 0) {
-        monthlyConsumption = kwh;
-      } else {
-        // Estimar consumo baseado na conta
-        monthlyConsumption = bill / tarifaComImpostos;
-      }
-      
-      // Economia com energia solar (95% da conta - taxa mínima permanece)
-      const monthlyEconomy = bill * 0.95;
-      const yearlyEconomy = monthlyEconomy * 12;
-      
-      // Dimensionamento do sistema (considerando irradiação do Maranhão: 5,5 kWh/m²/dia)
-      const dailyGeneration = monthlyConsumption / 30;
-      const systemSize = dailyGeneration / 5.5; // kWp necessário
-      
-      // Investimento estimado (R$ 4.500 por kWp instalado no Maranhão)
-      const investmentCost = systemSize * 4500;
-      
-      // Payback (tempo de retorno do investimento)
-      const paybackYears = investmentCost / yearlyEconomy;
-      
-      setSavings({
-        monthly: monthlyEconomy,
-        yearly: yearlyEconomy,
-        systemSize: Math.round(systemSize * 100) / 100,
-        investment: investmentCost,
-        payback: Math.round(paybackYears * 10) / 10
-      });
-    }
-  };
+  // Real-time status indicator
+  const isConnected = !tariffsLoading && !tariffsError && tariffs;
 
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
@@ -123,6 +84,21 @@ export const Hero = () => {
               <h2 className="text-2xl font-bold text-foreground">
                 Calcule Sua Economia
               </h2>
+              <div className="flex items-center gap-2 ml-auto">
+                {isConnected ? (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <Wifi className="h-4 w-4" />
+                    <span className="text-xs font-medium">Tarifas Atualizadas</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <WifiOff className="h-4 w-4" />
+                    <span className="text-xs">
+                      {tariffsLoading ? "Carregando..." : "Offline"}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -155,14 +131,21 @@ export const Hero = () => {
                 </p>
               </div>
 
-              <Button 
-                onClick={calculateSavings}
-                className="w-full bg-gradient-solar text-white font-semibold"
-                size="lg"
-              >
-                <Zap className="mr-2 h-5 w-5" />
-                Calcular Economia - Maranhão
-              </Button>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Zap className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium text-foreground">
+                    Cálculo Automático - {tariffs?.utility_company || "Equatorial Maranhão"}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Tarifas atualizadas em tempo real • Última atualização: {" "}
+                  {tariffs?.updated_at 
+                    ? new Date(tariffs.updated_at).toLocaleDateString('pt-BR')
+                    : "Carregando..."
+                  }
+                </p>
+              </div>
 
               {savings && (
                 <div className="space-y-4">
@@ -205,8 +188,8 @@ export const Hero = () => {
                     </div>
                     
                     <p className="text-xs text-muted-foreground mt-4">
-                      * Cálculo baseado nas tarifas da Equatorial Maranhão (2024/2025) 
-                      e irradiação solar média do estado.
+                      * Cálculo baseado nas tarifas da {tariffs?.utility_company || "Equatorial Maranhão"} 
+                      atualizadas em tempo real • Irradiação: {tariffs?.solar_irradiation || 5.5} kWh/m²/dia
                     </p>
                   </div>
                 </div>

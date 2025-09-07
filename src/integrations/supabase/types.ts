@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      solar_tariffs: {
+        Row: {
+          cofins_rate: number
+          created_at: string
+          distribution_tariff: number
+          energy_tariff: number
+          icms_rate: number
+          id: string
+          installation_cost_per_kwp: number
+          is_active: boolean
+          pis_rate: number
+          region: string
+          solar_irradiation: number
+          state: string
+          updated_at: string
+          utility_company: string
+        }
+        Insert: {
+          cofins_rate: number
+          created_at?: string
+          distribution_tariff: number
+          energy_tariff: number
+          icms_rate: number
+          id?: string
+          installation_cost_per_kwp: number
+          is_active?: boolean
+          pis_rate: number
+          region: string
+          solar_irradiation: number
+          state: string
+          updated_at?: string
+          utility_company: string
+        }
+        Update: {
+          cofins_rate?: number
+          created_at?: string
+          distribution_tariff?: number
+          energy_tariff?: number
+          icms_rate?: number
+          id?: string
+          installation_cost_per_kwp?: number
+          is_active?: boolean
+          pis_rate?: number
+          region?: string
+          solar_irradiation?: number
+          state?: string
+          updated_at?: string
+          utility_company?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
