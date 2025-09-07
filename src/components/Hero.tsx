@@ -7,7 +7,6 @@ import { useSolarTariffs } from "@/hooks/useSolarTariffs";
 import { calculateSolarSavings, SolarSavings } from "@/utils/solarCalculations";
 
 export const Hero = () => {
-  const [monthlyBill, setMonthlyBill] = useState("");
   const [consumption, setConsumption] = useState("");
   const [savings, setSavings] = useState<SolarSavings | null>(null);
   
@@ -19,15 +18,14 @@ export const Hero = () => {
 
   // Calculate savings automatically when inputs or tariffs change
   useEffect(() => {
-    if (currentTariff && (monthlyBill || consumption)) {
-      const bill = parseFloat(monthlyBill) || 0;
+    if (currentTariff && consumption) {
       const kwh = parseFloat(consumption) || 0;
-      const result = calculateSolarSavings(bill, kwh, currentTariff);
+      const result = calculateSolarSavings(0, kwh, currentTariff);
       setSavings(result);
     } else {
       setSavings(null);
     }
-  }, [currentTariff, monthlyBill, consumption]);
+  }, [currentTariff, consumption]);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
@@ -98,19 +96,6 @@ export const Hero = () => {
             </div>
 
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Valor da sua conta de luz mensal (R$)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Ex: 350"
-                  value={monthlyBill}
-                  onChange={(e) => setMonthlyBill(e.target.value)}
-                  className="text-lg"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Informe seu consumo mensal (kWh)
