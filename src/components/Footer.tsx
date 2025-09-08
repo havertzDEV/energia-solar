@@ -66,11 +66,11 @@ export const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-6">
               <Sun className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-primary">SolarTech</span>
+              <span className="text-2xl font-bold text-primary">Isollar E.E</span>
             </div>
             
             <p className="text-white/80 mb-6">
-              Especialistas em energia solar com mais de 5 anos de experiência. 
+              Especialistas em energia solar com mais de 4 anos de experiência. 
               Transformamos a energia do sol em economia para sua casa ou empresa.
             </p>
 
