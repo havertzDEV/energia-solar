@@ -59,8 +59,8 @@ export const Hero = () => {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">Não</div>
-                <div className="text-sm text-white/80">Perca Tempo</div>
+                <div className="text-3xl font-bold text-primary mb-2">1</div>
+                <div className="text-sm text-white/80">Ano de garantia de Instalação</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-2">85%</div>
@@ -68,7 +68,7 @@ export const Hero = () => {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-2">25</div>
-                <div className="text-sm text-white/80">Anos Garantia</div>
+                <div className="text-sm text-white/80">Anos de Garantia do fabricante</div>
               </div>
             </div>
           </div>
