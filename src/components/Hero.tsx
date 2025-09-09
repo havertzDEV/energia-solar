@@ -10,28 +10,45 @@ import { calculateSolarSavings, SolarSavings } from "@/utils/solarCalculations";
 
 // Estados brasileiros com suas regiões
 const ESTADOS = [
-  { name: "Maranhão", code: "MA", region: "Nordeste" },
-  { name: "São Paulo", code: "SP", region: "Sudeste" },
-  { name: "Rio de Janeiro", code: "RJ", region: "Sudeste" },
-  { name: "Minas Gerais", code: "MG", region: "Sudeste" },
+  { name: "Acre", code: "AC", region: "Norte" },
+  { name: "Alagoas", code: "AL", region: "Nordeste" },
+  { name: "Amapá", code: "AP", region: "Norte" },
+  { name: "Amazonas", code: "AM", region: "Norte" },
   { name: "Bahia", code: "BA", region: "Nordeste" },
-  { name: "Paraná", code: "PR", region: "Sul" },
-  { name: "Rio Grande do Sul", code: "RS", region: "Sul" },
-  { name: "Santa Catarina", code: "SC", region: "Sul" },
-  { name: "Goiás", code: "GO", region: "Centro-Oeste" },
   { name: "Ceará", code: "CE", region: "Nordeste" },
+  { name: "Distrito Federal", code: "DF", region: "Centro-Oeste" },
+  { name: "Espírito Santo", code: "ES", region: "Sudeste" },
+  { name: "Goiás", code: "GO", region: "Centro-Oeste" },
+  { name: "Maranhão", code: "MA", region: "Nordeste" },
+  { name: "Mato Grosso", code: "MT", region: "Centro-Oeste" },
+  { name: "Mato Grosso do Sul", code: "MS", region: "Centro-Oeste" },
+  { name: "Minas Gerais", code: "MG", region: "Sudeste" },
+  { name: "Pará", code: "PA", region: "Norte" },
+  { name: "Paraíba", code: "PB", region: "Nordeste" },
+  { name: "Paraná", code: "PR", region: "Sul" },
+  { name: "Pernambuco", code: "PE", region: "Nordeste" },
+  { name: "Piauí", code: "PI", region: "Nordeste" },
+  { name: "Rio de Janeiro", code: "RJ", region: "Sudeste" },
+  { name: "Rio Grande do Norte", code: "RN", region: "Nordeste" },
+  { name: "Rio Grande do Sul", code: "RS", region: "Sul" },
+  { name: "Rondônia", code: "RO", region: "Norte" },
+  { name: "Roraima", code: "RR", region: "Norte" },
+  { name: "Santa Catarina", code: "SC", region: "Sul" },
+  { name: "São Paulo", code: "SP", region: "Sudeste" },
+  { name: "Sergipe", code: "SE", region: "Nordeste" },
+  { name: "Tocantins", code: "TO", region: "Norte" },
 ];
 
 export const Hero = () => {
   const [consumption, setConsumption] = useState("");
-  const [selectedState, setSelectedState] = useState("MA");
+  const [selectedState, setSelectedState] = useState("SP"); // Começar com São Paulo como padrão
   const [isManualTariff, setIsManualTariff] = useState(false);
   const [manualTariff, setManualTariff] = useState("");
   const [savings, setSavings] = useState<SolarSavings | null>(null);
   
   const selectedStateData = ESTADOS.find(estado => estado.code === selectedState);
   
-  // Real-time tariffs from Supabase
+  // Real-time tariffs from Supabase - buscar por estado diretamente
   const { currentTariff, loading: tariffsLoading, error: tariffsError } = useSolarTariffs(
     selectedStateData?.region, 
     selectedState
@@ -220,18 +237,42 @@ export const Hero = () => {
               {!isManualTariff && (
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <Zap className="h-5 w-5 text-primary" />
-                     <span className="text-sm font-medium text-foreground">
-                       Tarifa Oficial - {currentTariff?.utility_company || `Estado: ${selectedStateData?.name}`}
-                     </span>
+                    {tariffsLoading ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                        <span className="text-sm">Carregando tarifas...</span>
+                      </div>
+                    ) : isConnected ? (
+                      <>
+                        <Zap className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium text-foreground">
+                          {currentTariff?.utility_company || `Estado: ${selectedStateData?.name}`}
+                        </span>
+                        <div className="flex items-center gap-1 text-green-600 ml-2">
+                          <Wifi className="h-4 w-4" />
+                          <span className="text-xs">Conectado</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-1 text-amber-600">
+                        <WifiOff className="h-4 w-4" />
+                        <span className="text-sm">
+                          {tariffsError ? "Erro ao carregar tarifas" : "Offline"}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                   <p className="text-xs text-muted-foreground">
-                     Dados atualizados em tempo real • Última atualização: {" "}
-                     {currentTariff?.updated_at 
-                       ? new Date(currentTariff.updated_at).toLocaleDateString('pt-BR')
-                       : "Carregando..."
-                     }
-                   </p>
+                  
+                  {currentTariff && !tariffsLoading && (
+                    <p className="text-xs text-muted-foreground">
+                      Tarifa oficial atualizada em: {" "}
+                      {new Date(currentTariff.updated_at).toLocaleDateString('pt-BR', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </p>
+                  )}
                 </div>
               )}
 
