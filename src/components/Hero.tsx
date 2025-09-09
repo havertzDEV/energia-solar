@@ -50,7 +50,7 @@ export const Hero = () => {
   
   // Real-time tariffs from Supabase - buscar por estado diretamente
   const { currentTariff, loading: tariffsLoading, error: tariffsError } = useSolarTariffs(
-    selectedStateData?.region, 
+    undefined, // Don't filter by region, prioritize state
     selectedState
   );
 

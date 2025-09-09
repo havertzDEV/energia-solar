@@ -32,11 +32,11 @@ export const useSolarTariffs = (region?: string, state?: string) => {
         .select('*')
         .eq('is_active', true);
 
-      if (region) {
-        query = query.eq('region', region);
-      }
+      // Prioritize state filtering over region
       if (state) {
         query = query.eq('state', state);
+      } else if (region) {
+        query = query.eq('region', region);
       }
 
       const { data, error: fetchError } = await query.order('updated_at', { ascending: false });
