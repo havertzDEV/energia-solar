@@ -98,12 +98,7 @@ export const Services = () => {
           ))}
         </div>
 
-        <div className="text-center">
-          <Button variant="solar" size="lg">
-            Ver Todos os Serviços
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
+        
       </div>
     </section>
   );
