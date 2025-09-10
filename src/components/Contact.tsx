@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Send, 
   MapPin, 
@@ -11,7 +12,8 @@ import {
   Mail, 
   Clock,
   MessageSquare,
-  Calculator
+  Calculator,
+  Loader2
 } from "lucide-react";
 
 export const Contact = () => {
@@ -22,22 +24,42 @@ export const Contact = () => {
     service: "",
     message: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    toast({
-      title: "Mensagem enviada!",
-      description: "Entraremos em contato em até 2 horas úteis.",
-    });
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      service: "",
-      message: ""
-    });
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-quote-email', {
+        body: formData
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Solicitação enviada com sucesso! ✅",
+        description: "Entraremos em contato em até 2 horas úteis. Verifique também seu email!",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        service: "",
+        message: ""
+      });
+    } catch (error) {
+      console.error('Error sending quote:', error);
+      toast({
+        title: "Erro ao enviar solicitação ❌",
+        description: "Tente novamente ou entre em contato via WhatsApp: (98) 99161-6381",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -214,14 +236,34 @@ export const Contact = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Button type="submit" variant="solar" size="lg" className="flex-1">
-                      <Send className="mr-2 h-5 w-5" />
-                      Enviar Solicitação
+                    <Button 
+                      type="submit" 
+                      variant="solar" 
+                      size="lg" 
+                      className="flex-1"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-5 w-5" />
+                          Enviar Solicitação
+                        </>
+                      )}
                     </Button>
                     
-                    <Button type="button" variant="outline" size="lg">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="lg"
+                      onClick={() => window.open('https://wa.me/5598991616381', '_blank')}
+                    >
                       <Phone className="mr-2 h-5 w-5" />
-                      Ligar Agora
+                      WhatsApp
                     </Button>
                   </div>
 
