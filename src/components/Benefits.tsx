@@ -139,7 +139,7 @@ export const Benefits = () => {
             </div>
 
             {/* Key Stats */}
-            <div className="mt-8 bg-gradient-hero rounded-2xl p-8 text-center">
+            <div className="hidden mt-8 bg-gradient-hero rounded-2xl p-8 text-center">
               <h3 className="text-2xl font-bold text-foreground mb-6">
                 Resultados Comprovados
               </h3>
