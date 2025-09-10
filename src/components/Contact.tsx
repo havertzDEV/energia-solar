@@ -130,7 +130,7 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-elegant bg-gradient-hero">
+           {/*} <Card className="border-0 shadow-elegant bg-gradient-hero">
               <CardContent className="p-6 text-center">
                 <Calculator className="h-12 w-12 text-primary mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -144,7 +144,7 @@ export const Contact = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
