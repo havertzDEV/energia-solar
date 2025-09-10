@@ -188,7 +188,7 @@ export const Footer = () => {
           {/* Contact */}
           <div>
             <h3 className="text-lg font-semibold mb-6 text-primary">
-              Contato
+              Contatos
             </h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
@@ -212,7 +212,7 @@ export const Footer = () => {
                 <Mail className="h-5 w-5 text-primary" />
                 <div className="text-white/80">
                   <div>isollarenergyengenharia@gmail.com</div>
-                  <div className="text-sm">Email Comercial</div>
+                  <div className="text-sm">E-mail Comercial</div>
                 </div>
               </li>
             </ul>
