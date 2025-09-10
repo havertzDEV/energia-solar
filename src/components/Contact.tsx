@@ -143,8 +143,8 @@ export const Contact = () => {
                   Solicitar Orçamento
                 </Button>
               </CardContent>
-            </Card>
-          </div> */}
+            </Card> */}
+          </div> 
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
