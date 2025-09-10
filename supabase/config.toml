@@ -2,3 +2,6 @@ project_id = "xbzxoaaexgyzunhkboqc"
 
 [functions.send-quote-email]
 verify_jwt = false
+
+[functions.update-solar-tariffs]
+verify_jwt = false

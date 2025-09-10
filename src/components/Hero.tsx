@@ -7,6 +7,7 @@ import { Calculator, ArrowRight, Zap, TrendingUp, Wifi, WifiOff, Settings2, BarC
 import heroImage from "@/assets/hero-solar.jpg";
 import { useSolarTariffs } from "@/hooks/useSolarTariffs";
 import { calculateSolarSavings, SolarSavings } from "@/utils/solarCalculations";
+import { TariffUpdateStatus } from "@/components/TariffUpdateStatus";
 
 // Estados brasileiros com suas regiões
 const ESTADOS = [
@@ -264,14 +265,9 @@ export const Hero = () => {
                   </div>
                   
                   {currentTariff && !tariffsLoading && (
-                    <p className="text-xs text-muted-foreground">
-                      Tarifa oficial atualizada em: {" "}
-                      {new Date(currentTariff.updated_at).toLocaleDateString('pt-BR', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
-                    </p>
+                    <div className="flex justify-center">
+                      <TariffUpdateStatus />
+                    </div>
                   )}
                 </div>
               )}
