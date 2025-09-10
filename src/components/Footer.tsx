@@ -194,9 +194,9 @@ export const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-primary mt-1" />
                 <div className="text-white/80">
-                  <div>Rua das Energias, 123</div>
+                  <div>Rua Principal, 12</div>
                   <div>São luís - MA</div>
-                  <div>CEP: 01234-567</div>
+                  <div>CEP: 65095-000</div>
                 </div>
               </li>
               
@@ -212,17 +212,17 @@ export const Footer = () => {
                 <Mail className="h-5 w-5 text-primary" />
                 <div className="text-white/80">
                   <div>isollarenergyengenharia@gmail.com</div>
-                  <div className="text-sm">Comercial</div>
+                  <div className="text-sm">Email Comercial</div>
                 </div>
               </li>
             </ul>
 
-            {/* CTA Button */}
-            <div className="mt-6">
+           { /* CTA Button */}
+           {/* <div className="mt-6">
               <Button variant="solar" className="w-full">
                 Solicitar Orçamento
               </Button>
-            </div>
+            </div>*/}
           </div>
         </div>
       </div>
