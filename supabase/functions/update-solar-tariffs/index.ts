@@ -127,6 +127,22 @@ async function fetchAneelTariffs() {
   }
 }
 
+async function logUpdate(success: boolean, updatedCount: number, insertedCount: number, errorMessage?: string, source = 'automated') {
+  try {
+    await supabase
+      .from('tariff_update_logs')
+      .insert({
+        success,
+        updated_count: updatedCount,
+        inserted_count: insertedCount,
+        error_message: errorMessage,
+        source
+      });
+  } catch (error) {
+    console.error('Erro ao salvar log:', error);
+  }
+}
+
 async function updateTariffData() {
   try {
     const aneelData = await fetchAneelTariffs()
@@ -221,7 +237,13 @@ Deno.serve(async (req) => {
   try {
     console.log('Iniciando atualização diária de tarifas solares...')
     
+    const { body } = await req.json().catch(() => ({}));
+    const source = body?.manual ? 'manual' : 'automated';
+    
     const result = await updateTariffData()
+    
+    // Log da atualização bem-sucedida
+    await logUpdate(true, result.updatedCount, result.insertedCount, undefined, source);
     
     const response = {
       success: true,
@@ -238,6 +260,9 @@ Deno.serve(async (req) => {
     })
   } catch (error) {
     console.error('Erro na atualização de tarifas:', error)
+    
+    // Log do erro
+    await logUpdate(false, 0, 0, error.message, 'automated');
     
     return new Response(JSON.stringify({
       success: false,
