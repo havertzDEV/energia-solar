@@ -112,10 +112,10 @@ export const Contact = () => {
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
                   <div>
-                    <div className="font-medium">Rua das Energias, 123</div>
+                    <div className="font-medium">Rua Principal, 12</div>
                     <div className="text-sm text-muted-foreground">
                       São Luís - MA<br />
-                      CEP: 01234-567
+                      CEP: 65095-000
                     </div>
                   </div>
                 </div>
