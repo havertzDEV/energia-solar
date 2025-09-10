@@ -65,12 +65,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tariff_update_logs: {
+        Row: {
+          error_message: string | null
+          id: string
+          inserted_count: number
+          source: string | null
+          success: boolean
+          update_timestamp: string
+          updated_count: number
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          inserted_count?: number
+          source?: string | null
+          success?: boolean
+          update_timestamp?: string
+          updated_count?: number
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          inserted_count?: number
+          source?: string | null
+          success?: boolean
+          update_timestamp?: string
+          updated_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_tariff_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
