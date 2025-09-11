@@ -9,6 +9,9 @@ export interface SolarCalculation {
   payback: number;
   monthlyConsumption: number;
   totalTariff: number;
+  inverterPower: number;
+  moduleQuantity: number;
+  moduleUnitPower: number;
 }
 
 export const useSolarCalculator = (
@@ -43,6 +46,11 @@ export const useSolarCalculator = (
     const dailyGeneration = monthlyConsumption / 30;
     const systemSize = dailyGeneration / tariffs.solar_irradiation;
 
+    // Especificações do equipamento
+    const moduleUnitPower = 0.55; // 550W por módulo (padrão mercado)
+    const moduleQuantity = Math.ceil(systemSize / moduleUnitPower);
+    const inverterPower = Math.round(systemSize * 1.2 * 100) / 100; // 20% acima do sistema
+
     // Investimento estimado
     const investmentCost = systemSize * tariffs.installation_cost_per_kwp;
 
@@ -56,7 +64,10 @@ export const useSolarCalculator = (
       investment: investmentCost,
       payback: Math.round(paybackYears * 10) / 10,
       monthlyConsumption,
-      totalTariff
+      totalTariff,
+      inverterPower,
+      moduleQuantity,
+      moduleUnitPower
     };
   }, [monthlyBill, consumption, tariffs]);
 };

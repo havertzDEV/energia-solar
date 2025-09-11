@@ -8,6 +8,9 @@ export interface SolarSavings {
   payback: number;
   totalTariff: number;
   monthlyConsumption: number;
+  inverterPower: number;
+  moduleQuantity: number;
+  moduleUnitPower: number;
 }
 
 export const calculateSolarSavings = (
@@ -44,6 +47,11 @@ export const calculateSolarSavings = (
   const dailyGeneration = monthlyConsumption / 30;
   const systemSize = dailyGeneration / tariff.solar_irradiation;
 
+  // Especificações do equipamento
+  const moduleUnitPower = 0.55; // 550W por módulo (padrão mercado)
+  const moduleQuantity = Math.ceil(systemSize / moduleUnitPower);
+  const inverterPower = Math.round(systemSize * 1.2 * 100) / 100; // 20% acima do sistema
+
   // Investimento estimado
   const investmentCost = systemSize * tariff.installation_cost_per_kwp;
 
@@ -57,6 +65,9 @@ export const calculateSolarSavings = (
     investment: investmentCost,
     payback: Math.round(paybackYears * 10) / 10,
     totalTariff,
-    monthlyConsumption: Math.round(monthlyConsumption)
+    monthlyConsumption: Math.round(monthlyConsumption),
+    inverterPower,
+    moduleQuantity,
+    moduleUnitPower
   };
 };

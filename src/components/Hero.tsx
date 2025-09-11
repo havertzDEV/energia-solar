@@ -314,6 +314,46 @@ export const Hero = () => {
                     </div>
                   </div>
 
+                  {/* Especificações do Sistema */}
+                  <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Zap className="h-5 w-5 text-purple-600" />
+                      <h4 className="font-semibold text-purple-900 dark:text-purple-100">
+                        Especificações do Sistema
+                      </h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Módulos Fotovoltaicos</p>
+                        <p className="text-lg font-bold text-purple-600">
+                          {savings.moduleQuantity}x {(savings.moduleUnitPower * 1000).toFixed(0)}W
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {(savings.moduleQuantity * savings.moduleUnitPower).toFixed(1)} kWp total
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Inversor</p>
+                        <p className="text-lg font-bold text-purple-600">
+                          {savings.inverterPower.toFixed(1)} kW
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          String ou microinversor
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Área Aproximada</p>
+                        <p className="text-lg font-bold text-purple-600">
+                          {(savings.moduleQuantity * 2.6).toFixed(0)} m²
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Área de telhado necessária
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Detalhamento de Impostos */}
                   {currentTariff && !isManualTariff && (
                     <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
