@@ -46,6 +46,9 @@ export const Hero = () => {
   const [isManualTariff, setIsManualTariff] = useState(false);
   const [manualTariff, setManualTariff] = useState("");
   const [savings, setSavings] = useState<SolarSavings | null>(null);
+  const [isCustomSystem, setIsCustomSystem] = useState(false);
+  const [customModulePower, setCustomModulePower] = useState("550");
+  const [customInverterPower, setCustomInverterPower] = useState("");
   
   const selectedStateData = ESTADOS.find(estado => estado.code === selectedState);
   
@@ -316,42 +319,143 @@ export const Hero = () => {
 
                   {/* Especificações do Sistema */}
                   <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Zap className="h-5 w-5 text-purple-600" />
-                      <h4 className="font-semibold text-purple-900 dark:text-purple-100">
-                        Especificações do Sistema
-                      </h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-purple-600" />
+                        <h4 className="font-semibold text-purple-900 dark:text-purple-100">
+                          Especificações do Sistema
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="custom-system"
+                          checked={isCustomSystem}
+                          onCheckedChange={setIsCustomSystem}
+                        />
+                        <label htmlFor="custom-system" className="text-sm text-muted-foreground">
+                          Sistema Personalizado
+                        </label>
+                      </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Módulos Fotovoltaicos</p>
-                        <p className="text-lg font-bold text-purple-600">
-                          {savings.moduleQuantity}x {(savings.moduleUnitPower * 1000).toFixed(0)}W
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {(savings.moduleQuantity * savings.moduleUnitPower).toFixed(1)} kWp total
-                        </p>
+                    {!isCustomSystem ? (
+                      // Sistema Padrão (calculado automaticamente)
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Módulos Fotovoltaicos</p>
+                          <p className="text-lg font-bold text-purple-600">
+                            {savings.moduleQuantity}x {(savings.moduleUnitPower * 1000).toFixed(0)}W
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(savings.moduleQuantity * savings.moduleUnitPower).toFixed(1)} kWp total
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Inversor</p>
+                          <p className="text-lg font-bold text-purple-600">
+                            {savings.inverterPower.toFixed(1)} kW
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            String ou microinversor
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Área Aproximada</p>
+                          <p className="text-lg font-bold text-purple-600">
+                            {(savings.moduleQuantity * 2.6).toFixed(0)} m²
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Área de telhado necessária
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Inversor</p>
-                        <p className="text-lg font-bold text-purple-600">
-                          {savings.inverterPower.toFixed(1)} kW
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          String ou microinversor
-                        </p>
+                    ) : (
+                      // Sistema Personalizado
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm text-muted-foreground mb-2 block">
+                              Potência dos Módulos
+                            </label>
+                            <Select value={customModulePower} onValueChange={setCustomModulePower}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="400">400W - Padrão Residencial</SelectItem>
+                                <SelectItem value="450">450W - Residencial Premium</SelectItem>
+                                <SelectItem value="500">500W - Alto Desempenho</SelectItem>
+                                <SelectItem value="550">550W - Ultra Eficiente</SelectItem>
+                                <SelectItem value="600">600W - Premium Plus</SelectItem>
+                                <SelectItem value="650">650W - Máxima Potência</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm text-muted-foreground mb-2 block">
+                              Potência do Inversor (kW)
+                            </label>
+                            <Select value={customInverterPower} onValueChange={setCustomInverterPower}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="3">3kW - Microinversor</SelectItem>
+                                <SelectItem value="5">5kW - Residencial Pequeno</SelectItem>
+                                <SelectItem value="8">8kW - Residencial Médio</SelectItem>
+                                <SelectItem value="10">10kW - Residencial Grande</SelectItem>
+                                <SelectItem value="15">15kW - Comercial Pequeno</SelectItem>
+                                <SelectItem value="20">20kW - Comercial Médio</SelectItem>
+                                <SelectItem value="25">25kW - Comercial Grande</SelectItem>
+                                <SelectItem value="30">30kW - Industrial</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        {customInverterPower && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Módulos Necessários</p>
+                              <p className="text-lg font-bold text-purple-600">
+                                {Math.ceil(parseFloat(customInverterPower) / (parseFloat(customModulePower) / 1000))}x {customModulePower}W
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {(Math.ceil(parseFloat(customInverterPower) / (parseFloat(customModulePower) / 1000)) * parseFloat(customModulePower) / 1000).toFixed(1)} kWp total
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Inversor Selecionado</p>
+                              <p className="text-lg font-bold text-purple-600">
+                                {parseFloat(customInverterPower).toFixed(1)} kW
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {parseFloat(customInverterPower) >= 10 ? "String/Central" : "Micro/String"}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Área Aproximada</p>
+                              <p className="text-lg font-bold text-purple-600">
+                                {(Math.ceil(parseFloat(customInverterPower) / (parseFloat(customModulePower) / 1000)) * 2.6).toFixed(0)} m²
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Área de telhado necessária
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {customInverterPower && (
+                          <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+                            <p className="text-sm text-amber-800 dark:text-amber-200">
+                              <strong>Sistema Personalizado:</strong> O investimento e payback são baseados no sistema recomendado ({savings.systemSize} kWp). 
+                              Para um orçamento preciso do sistema personalizado, solicite uma consulta gratuita.
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Área Aproximada</p>
-                        <p className="text-lg font-bold text-purple-600">
-                          {(savings.moduleQuantity * 2.6).toFixed(0)} m²
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Área de telhado necessária
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Detalhamento de Impostos */}
