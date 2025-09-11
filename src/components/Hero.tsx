@@ -49,6 +49,8 @@ export const Hero = () => {
   const [isCustomSystem, setIsCustomSystem] = useState(false);
   const [customModulePower, setCustomModulePower] = useState("550");
   const [customInverterPower, setCustomInverterPower] = useState("");
+  const [customModuleQuantity, setCustomModuleQuantity] = useState("");
+  const [inverterType, setInverterType] = useState("string");
   
   const selectedStateData = ESTADOS.find(estado => estado.code === selectedState);
   
@@ -372,7 +374,7 @@ export const Hero = () => {
                     ) : (
                       // Sistema Personalizado
                       <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label className="text-sm text-muted-foreground mb-2 block">
                               Potência dos Módulos
@@ -394,50 +396,114 @@ export const Hero = () => {
                           
                           <div>
                             <label className="text-sm text-muted-foreground mb-2 block">
-                              Potência do Inversor (kW)
+                              Quantidade de Módulos
                             </label>
-                            <Select value={customInverterPower} onValueChange={setCustomInverterPower}>
+                            <Select value={customModuleQuantity} onValueChange={setCustomModuleQuantity}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="3">3kW - Microinversor</SelectItem>
-                                <SelectItem value="5">5kW - Residencial Pequeno</SelectItem>
-                                <SelectItem value="8">8kW - Residencial Médio</SelectItem>
-                                <SelectItem value="10">10kW - Residencial Grande</SelectItem>
-                                <SelectItem value="15">15kW - Comercial Pequeno</SelectItem>
-                                <SelectItem value="20">20kW - Comercial Médio</SelectItem>
-                                <SelectItem value="25">25kW - Comercial Grande</SelectItem>
-                                <SelectItem value="30">30kW - Industrial</SelectItem>
+                                <SelectItem value="6">6 módulos - Sistema Pequeno</SelectItem>
+                                <SelectItem value="8">8 módulos - Residencial Básico</SelectItem>
+                                <SelectItem value="10">10 módulos - Residencial Médio</SelectItem>
+                                <SelectItem value="12">12 módulos - Residencial Padrão</SelectItem>
+                                <SelectItem value="15">15 módulos - Residencial Grande</SelectItem>
+                                <SelectItem value="18">18 módulos - Casa Grande</SelectItem>
+                                <SelectItem value="20">20 módulos - Comercial Pequeno</SelectItem>
+                                <SelectItem value="25">25 módulos - Comercial Médio</SelectItem>
+                                <SelectItem value="30">30 módulos - Comercial Grande</SelectItem>
+                                <SelectItem value="40">40 módulos - Industrial Pequeno</SelectItem>
+                                <SelectItem value="50">50 módulos - Industrial Médio</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm text-muted-foreground mb-2 block">
+                              Tipo de Inversor
+                            </label>
+                            <Select value={inverterType} onValueChange={setInverterType}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="micro">Microinversor</SelectItem>
+                                <SelectItem value="string">Inversor String</SelectItem>
+                                <SelectItem value="central">Inversor Central</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
+
+                        {inverterType && (
+                          <div>
+                            <label className="text-sm text-muted-foreground mb-2 block">
+                              Potência do Inversor (kW)
+                            </label>
+                            <Select value={customInverterPower} onValueChange={setCustomInverterPower}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione a potência..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {inverterType === "micro" && (
+                                  <>
+                                    <SelectItem value="0.5">0.5kW - Microinversor Individual</SelectItem>
+                                    <SelectItem value="1">1kW - Microinversor Duplo</SelectItem>
+                                    <SelectItem value="1.5">1.5kW - Microinversor Triplo</SelectItem>
+                                    <SelectItem value="2">2kW - Microinversor Quádruplo</SelectItem>
+                                  </>
+                                )}
+                                {inverterType === "string" && (
+                                  <>
+                                    <SelectItem value="3">3kW - String Pequeno</SelectItem>
+                                    <SelectItem value="5">5kW - String Residencial</SelectItem>
+                                    <SelectItem value="8">8kW - String Médio</SelectItem>
+                                    <SelectItem value="10">10kW - String Grande</SelectItem>
+                                    <SelectItem value="15">15kW - String Comercial</SelectItem>
+                                    <SelectItem value="20">20kW - String Industrial</SelectItem>
+                                  </>
+                                )}
+                                {inverterType === "central" && (
+                                  <>
+                                    <SelectItem value="20">20kW - Central Pequeno</SelectItem>
+                                    <SelectItem value="25">25kW - Central Médio</SelectItem>
+                                    <SelectItem value="30">30kW - Central Grande</SelectItem>
+                                    <SelectItem value="50">50kW - Central Industrial</SelectItem>
+                                    <SelectItem value="75">75kW - Central Mega</SelectItem>
+                                    <SelectItem value="100">100kW - Central Ultra</SelectItem>
+                                  </>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                         
-                        {customInverterPower && (
+                        {customModuleQuantity && customModulePower && (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                             <div className="text-center">
-                              <p className="text-sm text-muted-foreground">Módulos Necessários</p>
+                              <p className="text-sm text-muted-foreground">Sistema Selecionado</p>
                               <p className="text-lg font-bold text-purple-600">
-                                {Math.ceil(parseFloat(customInverterPower) / (parseFloat(customModulePower) / 1000))}x {customModulePower}W
+                                {customModuleQuantity}x {customModulePower}W
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {(Math.ceil(parseFloat(customInverterPower) / (parseFloat(customModulePower) / 1000)) * parseFloat(customModulePower) / 1000).toFixed(1)} kWp total
+                                {(parseInt(customModuleQuantity) * parseFloat(customModulePower) / 1000).toFixed(1)} kWp total
                               </p>
                             </div>
                             <div className="text-center">
-                              <p className="text-sm text-muted-foreground">Inversor Selecionado</p>
+                              <p className="text-sm text-muted-foreground">Inversor</p>
                               <p className="text-lg font-bold text-purple-600">
-                                {parseFloat(customInverterPower).toFixed(1)} kW
+                                {customInverterPower ? `${parseFloat(customInverterPower).toFixed(1)} kW` : "Não selecionado"}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {parseFloat(customInverterPower) >= 10 ? "String/Central" : "Micro/String"}
+                                {inverterType === "micro" && "Microinversor"}
+                                {inverterType === "string" && "Inversor String"}
+                                {inverterType === "central" && "Inversor Central"}
                               </p>
                             </div>
                             <div className="text-center">
                               <p className="text-sm text-muted-foreground">Área Aproximada</p>
                               <p className="text-lg font-bold text-purple-600">
-                                {(Math.ceil(parseFloat(customInverterPower) / (parseFloat(customModulePower) / 1000)) * 2.6).toFixed(0)} m²
+                                {(parseInt(customModuleQuantity) * 2.6).toFixed(0)} m²
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Área de telhado necessária
@@ -445,8 +511,36 @@ export const Hero = () => {
                             </div>
                           </div>
                         )}
+
+                        {customModuleQuantity && customInverterPower && (
+                          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Settings2 className="h-4 w-4 text-purple-600" />
+                              <h5 className="font-semibold text-purple-900 dark:text-purple-100">
+                                Análise do Sistema Personalizado
+                              </h5>
+                            </div>
+                            <div className="text-sm space-y-1">
+                              <p className="text-muted-foreground">
+                                <strong>Potência Total dos Módulos:</strong> {(parseInt(customModuleQuantity) * parseFloat(customModulePower) / 1000).toFixed(2)} kWp
+                              </p>
+                              <p className="text-muted-foreground">
+                                <strong>Potência do Inversor:</strong> {parseFloat(customInverterPower).toFixed(1)} kW
+                              </p>
+                              <p className="text-muted-foreground">
+                                <strong>Dimensionamento:</strong> {
+                                  (parseInt(customModuleQuantity) * parseFloat(customModulePower) / 1000) > parseFloat(customInverterPower) * 1.2
+                                    ? "⚠️ Sistema superdimensionado - considere inversor maior"
+                                    : (parseInt(customModuleQuantity) * parseFloat(customModulePower) / 1000) < parseFloat(customInverterPower) * 0.8
+                                    ? "⚠️ Sistema subdimensionado - considere mais módulos"
+                                    : "✅ Sistema bem dimensionado"
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        )}
                         
-                        {customInverterPower && (
+                        {customModuleQuantity && (
                           <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
                             <p className="text-sm text-amber-800 dark:text-amber-200">
                               <strong>Sistema Personalizado:</strong> O investimento e payback são baseados no sistema recomendado ({savings.systemSize} kWp). 
