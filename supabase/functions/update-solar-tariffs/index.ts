@@ -205,10 +205,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Iniciando atualização diária de tarifas solares...')
-    
     const { body } = await req.json().catch(() => ({}));
-    const source = body?.manual ? 'manual' : 'automated';
+    const source = body?.manual ? 'manual' : body?.auto ? 'auto-quote' : 'automated';
+    const trigger = body?.trigger || 'scheduled';
+    
+    console.log(`🚀 Iniciando atualização de tarifas solares - Source: ${source}, Trigger: ${trigger}`)
     
     const result = await updateTariffData()
     
@@ -217,22 +218,24 @@ Deno.serve(async (req) => {
     
     const response = {
       success: true,
-      message: `Atualização concluída: ${result.updatedCount} tarifas atualizadas, ${result.insertedCount} novas tarifas inseridas`,
+      message: `✅ Atualização concluída: ${result.updatedCount} tarifas atualizadas, ${result.insertedCount} novas tarifas inseridas (27 estados)`,
       timestamp: new Date().toISOString(),
+      source,
+      trigger,
       ...result
     }
 
-    console.log('Atualização concluída:', response)
+    console.log('✅ Atualização concluída com sucesso:', response)
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
   } catch (error) {
-    console.error('Erro na atualização de tarifas:', error)
+    console.error('❌ Erro na atualização de tarifas:', error)
     
     // Log do erro
-    await logUpdate(false, 0, 0, error.message, 'automated');
+    await logUpdate(false, 0, 0, error.message, 'error');
     
     return new Response(JSON.stringify({
       success: false,

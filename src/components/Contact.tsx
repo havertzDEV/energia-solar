@@ -22,7 +22,10 @@ export const Contact = () => {
     email: "",
     phone: "",
     service: "",
-    message: ""
+    message: "",
+    state: "",
+    monthlyBill: 0,
+    consumption: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -33,7 +36,12 @@ export const Contact = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('send-quote-email', {
-        body: formData
+        body: {
+          ...formData,
+          state: formData.state || undefined,
+          monthlyBill: formData.monthlyBill > 0 ? formData.monthlyBill : undefined,
+          consumption: formData.consumption > 0 ? formData.consumption : undefined
+        }
       });
 
       if (error) throw error;
@@ -48,7 +56,10 @@ export const Contact = () => {
         email: "",
         phone: "",
         service: "",
-        message: ""
+        message: "",
+        state: "",
+        monthlyBill: 0,
+        consumption: 0
       });
     } catch (error) {
       console.error('Error sending quote:', error);
@@ -202,6 +213,78 @@ export const Contact = () => {
                       />
                     </div>
                     
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Estado
+                      </label>
+                      <select
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">Selecione seu estado</option>
+                        <option value="AC">Acre (AC)</option>
+                        <option value="AL">Alagoas (AL)</option>
+                        <option value="AP">Amapá (AP)</option>
+                        <option value="AM">Amazonas (AM)</option>
+                        <option value="BA">Bahia (BA)</option>
+                        <option value="CE">Ceará (CE)</option>
+                        <option value="DF">Distrito Federal (DF)</option>
+                        <option value="ES">Espírito Santo (ES)</option>
+                        <option value="GO">Goiás (GO)</option>
+                        <option value="MA">Maranhão (MA)</option>
+                        <option value="MT">Mato Grosso (MT)</option>
+                        <option value="MS">Mato Grosso do Sul (MS)</option>
+                        <option value="MG">Minas Gerais (MG)</option>
+                        <option value="PA">Pará (PA)</option>
+                        <option value="PB">Paraíba (PB)</option>
+                        <option value="PR">Paraná (PR)</option>
+                        <option value="PE">Pernambuco (PE)</option>
+                        <option value="PI">Piauí (PI)</option>
+                        <option value="RJ">Rio de Janeiro (RJ)</option>
+                        <option value="RN">Rio Grande do Norte (RN)</option>
+                        <option value="RS">Rio Grande do Sul (RS)</option>
+                        <option value="RO">Rondônia (RO)</option>
+                        <option value="RR">Roraima (RR)</option>
+                        <option value="SC">Santa Catarina (SC)</option>
+                        <option value="SP">São Paulo (SP)</option>
+                        <option value="SE">Sergipe (SE)</option>
+                        <option value="TO">Tocantins (TO)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Consumo Mensal (kWh)
+                      </label>
+                      <Input
+                        name="consumption"
+                        type="number"
+                        value={formData.consumption || ""}
+                        onChange={handleInputChange}
+                        placeholder="Ex: 450"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Valor da Conta (R$)
+                      </label>
+                      <Input
+                        name="monthlyBill"
+                        type="number"
+                        step="0.01"
+                        value={formData.monthlyBill || ""}
+                        onChange={handleInputChange}
+                        placeholder="Ex: 350.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Tipo de Serviço

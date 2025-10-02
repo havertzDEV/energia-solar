@@ -21,6 +21,63 @@ interface QuoteEmailRequest {
   phone: string;
   service: string;
   message: string;
+  state?: string;
+  monthlyBill?: number;
+  consumption?: number;
+}
+
+// Função para verificar e atualizar tarifas automaticamente
+async function ensureTariffsAreUpdated(): Promise<boolean> {
+  try {
+    console.log("🔍 Verificando status das tarifas...");
+    
+    // Verificar última atualização
+    const { data: lastLog } = await supabase
+      .from('tariff_update_logs')
+      .select('update_timestamp, success, updated_count, inserted_count')
+      .order('update_timestamp', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const now = new Date().getTime();
+    const lastUpdate = lastLog ? new Date(lastLog.update_timestamp).getTime() : 0;
+    const daysSinceUpdate = (now - lastUpdate) / (1000 * 60 * 60 * 24);
+
+    // Verificar se todas as tarifas dos 27 estados estão ativas
+    const { data: activeTariffs, count } = await supabase
+      .from('solar_tariffs')
+      .select('state', { count: 'exact' })
+      .eq('is_active', true);
+
+    const hasAllStates = count === 27;
+    const needsUpdate = !lastLog || 
+                       !lastLog.success || 
+                       daysSinceUpdate > 30 ||
+                       !hasAllStates;
+
+    if (needsUpdate) {
+      console.log(`⚠️ Atualização necessária - Dias desde última: ${daysSinceUpdate.toFixed(1)}, Estados ativos: ${count}/27`);
+      console.log("🔄 Iniciando atualização automática de tarifas...");
+      
+      const { data, error } = await supabase.functions.invoke('update-solar-tariffs', {
+        body: { trigger: 'quote-request', auto: true }
+      });
+      
+      if (error) {
+        console.error("❌ Erro ao atualizar tarifas:", error);
+        return false;
+      }
+      
+      console.log("✅ Tarifas atualizadas com sucesso:", data);
+      return true;
+    } else {
+      console.log(`✅ Tarifas já atualizadas - Última atualização: ${daysSinceUpdate.toFixed(1)} dias atrás`);
+      return true;
+    }
+  } catch (error) {
+    console.error("❌ Erro ao verificar/atualizar tarifas:", error);
+    return false;
+  }
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -30,40 +87,55 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, phone, service, message }: QuoteEmailRequest = await req.json();
+    const { name, email, phone, service, message, state, monthlyBill, consumption }: QuoteEmailRequest = await req.json();
 
-    console.log("Sending quote email for:", { name, email, phone, service });
+    console.log("📧 Processando solicitação de orçamento:", { name, email, phone, service, state });
 
-    // Verificar e atualizar tarifas automaticamente se necessário
-    console.log("Verificando necessidade de atualização de tarifas...");
-    const { data: lastLog } = await supabase
-      .from('tariff_update_logs')
-      .select('update_timestamp, success')
-      .order('update_timestamp', { ascending: false })
-      .limit(1)
-      .single();
+    // SEMPRE verificar e atualizar tarifas antes de processar orçamento
+    const tariffsUpdated = await ensureTariffsAreUpdated();
+    
+    if (!tariffsUpdated) {
+      console.warn("⚠️ Tarifas podem estar desatualizadas, mas continuando com o orçamento...");
+    }
 
-    const shouldUpdate = !lastLog || 
-      !lastLog.success || 
-      (new Date().getTime() - new Date(lastLog.update_timestamp).getTime()) > 30 * 24 * 60 * 60 * 1000; // 30 dias
+    // Buscar informações da tarifa do estado se fornecido
+    let tariffInfo = "";
+    if (state) {
+      const { data: tariff } = await supabase
+        .from('solar_tariffs')
+        .select('*')
+        .eq('state', state)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (shouldUpdate) {
-      console.log("Atualizando tarifas automaticamente antes de enviar orçamento...");
-      try {
-        const { error: updateError } = await supabase.functions.invoke('update-solar-tariffs', {
-          body: { trigger: 'quote-request' }
-        });
+      if (tariff) {
+        const totalTaxRate = 1 + tariff.icms_rate + tariff.pis_rate + tariff.cofins_rate;
+        const totalTariff = (tariff.energy_tariff + tariff.distribution_tariff) * totalTaxRate;
         
-        if (updateError) {
-          console.error("Erro ao atualizar tarifas:", updateError);
-        } else {
-          console.log("Tarifas atualizadas com sucesso!");
-        }
-      } catch (updateErr) {
-        console.error("Erro ao chamar função de atualização:", updateErr);
+        tariffInfo = `
+          <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+            <h3 style="color: #0c4a6e; margin: 0 0 15px 0;">💡 Informações da Tarifa - ${state}</h3>
+            <p style="margin: 5px 0; color: #0f172a;"><strong>Distribuidora:</strong> ${tariff.utility_company}</p>
+            <p style="margin: 5px 0; color: #0f172a;"><strong>Tarifa de Energia:</strong> R$ ${tariff.energy_tariff.toFixed(4)}/kWh</p>
+            <p style="margin: 5px 0; color: #0f172a;"><strong>Tarifa de Distribuição:</strong> R$ ${tariff.distribution_tariff.toFixed(4)}/kWh</p>
+            <p style="margin: 5px 0; color: #0f172a;"><strong>ICMS:</strong> ${(tariff.icms_rate * 100).toFixed(2)}%</p>
+            <p style="margin: 5px 0; color: #0f172a;"><strong>PIS:</strong> ${(tariff.pis_rate * 100).toFixed(2)}%</p>
+            <p style="margin: 5px 0; color: #0f172a;"><strong>COFINS:</strong> ${(tariff.cofins_rate * 100).toFixed(2)}%</p>
+            <p style="margin: 10px 0 0 0; color: #0f172a; font-weight: bold; font-size: 16px;">
+              <strong>Tarifa Total:</strong> R$ ${totalTariff.toFixed(4)}/kWh
+            </p>
+            <p style="margin: 5px 0; color: #64748b; font-size: 12px;">
+              ⚡ Irradiação Solar: ${tariff.solar_irradiation} kWh/m²/dia | 
+              💰 Custo de Instalação: R$ ${tariff.installation_cost_per_kwp.toLocaleString('pt-BR')}/kWp
+            </p>
+            <p style="margin: 10px 0 0 0; color: #64748b; font-size: 11px; font-style: italic;">
+              📅 Dados atualizados em: ${new Date(tariff.updated_at).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+        `;
       }
-    } else {
-      console.log("Tarifas já estão atualizadas.");
     }
 
     // Email para a empresa
@@ -85,7 +157,12 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
               <p style="margin: 10px 0;"><strong>Telefone:</strong> ${phone}</p>
               <p style="margin: 10px 0;"><strong>Tipo de Serviço:</strong> ${service || 'Não especificado'}</p>
+              ${state ? `<p style="margin: 10px 0;"><strong>Estado:</strong> ${state}</p>` : ''}
+              ${monthlyBill ? `<p style="margin: 10px 0;"><strong>Conta Mensal:</strong> R$ ${monthlyBill.toFixed(2)}</p>` : ''}
+              ${consumption ? `<p style="margin: 10px 0;"><strong>Consumo:</strong> ${consumption} kWh/mês</p>` : ''}
             </div>
+            
+            ${tariffInfo}
             
             ${message ? `
               <h3 style="color: #1f2937; margin: 20px 0 10px 0;">Mensagem do Cliente:</h3>
