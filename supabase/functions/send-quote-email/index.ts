@@ -1,7 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +33,38 @@ const handler = async (req: Request): Promise<Response> => {
     const { name, email, phone, service, message }: QuoteEmailRequest = await req.json();
 
     console.log("Sending quote email for:", { name, email, phone, service });
+
+    // Verificar e atualizar tarifas automaticamente se necessário
+    console.log("Verificando necessidade de atualização de tarifas...");
+    const { data: lastLog } = await supabase
+      .from('tariff_update_logs')
+      .select('update_timestamp, success')
+      .order('update_timestamp', { ascending: false })
+      .limit(1)
+      .single();
+
+    const shouldUpdate = !lastLog || 
+      !lastLog.success || 
+      (new Date().getTime() - new Date(lastLog.update_timestamp).getTime()) > 30 * 24 * 60 * 60 * 1000; // 30 dias
+
+    if (shouldUpdate) {
+      console.log("Atualizando tarifas automaticamente antes de enviar orçamento...");
+      try {
+        const { error: updateError } = await supabase.functions.invoke('update-solar-tariffs', {
+          body: { trigger: 'quote-request' }
+        });
+        
+        if (updateError) {
+          console.error("Erro ao atualizar tarifas:", updateError);
+        } else {
+          console.log("Tarifas atualizadas com sucesso!");
+        }
+      } catch (updateErr) {
+        console.error("Erro ao chamar função de atualização:", updateErr);
+      }
+    } else {
+      console.log("Tarifas já estão atualizadas.");
+    }
 
     // Email para a empresa
     const companyEmailResponse = await resend.emails.send({
