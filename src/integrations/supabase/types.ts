@@ -30,6 +30,7 @@ export type Database = {
           state: string
           updated_at: string
           utility_company: string
+          utility_id: string | null
         }
         Insert: {
           cofins_rate: number
@@ -46,6 +47,7 @@ export type Database = {
           state: string
           updated_at?: string
           utility_company: string
+          utility_id?: string | null
         }
         Update: {
           cofins_rate?: number
@@ -62,6 +64,7 @@ export type Database = {
           state?: string
           updated_at?: string
           utility_company?: string
+          utility_id?: string | null
         }
         Relationships: []
       }
