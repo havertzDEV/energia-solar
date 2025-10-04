@@ -22,6 +22,7 @@ interface QuoteEmailRequest {
   service: string;
   message: string;
   state?: string;
+  utilityId?: string;
   monthlyBill?: number;
   consumption?: number;
 }
@@ -43,20 +44,20 @@ async function ensureTariffsAreUpdated(): Promise<boolean> {
     const lastUpdate = lastLog ? new Date(lastLog.update_timestamp).getTime() : 0;
     const daysSinceUpdate = (now - lastUpdate) / (1000 * 60 * 60 * 24);
 
-    // Verificar se todas as tarifas dos 27 estados estão ativas
-    const { data: activeTariffs, count } = await supabase
+    // Verificar se todas as concessionárias estão ativas (pelo menos 27, uma por estado)
+    const { count } = await supabase
       .from('solar_tariffs')
-      .select('state', { count: 'exact' })
+      .select('utility_id', { count: 'exact' })
       .eq('is_active', true);
 
-    const hasAllStates = count === 27;
+    const hasMinimumUtilities = (count || 0) >= 27;
     const needsUpdate = !lastLog || 
                        !lastLog.success || 
                        daysSinceUpdate > 30 ||
-                       !hasAllStates;
+                       !hasMinimumUtilities;
 
     if (needsUpdate) {
-      console.log(`⚠️ Atualização necessária - Dias desde última: ${daysSinceUpdate.toFixed(1)}, Estados ativos: ${count}/27`);
+      console.log(`⚠️ Atualização necessária - Dias desde última: ${daysSinceUpdate.toFixed(1)}, Concessionárias ativas: ${count}/27+`);
       console.log("🔄 Iniciando atualização automática de tarifas...");
       
       const { data, error } = await supabase.functions.invoke('update-solar-tariffs', {
@@ -87,9 +88,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, phone, service, message, state, monthlyBill, consumption }: QuoteEmailRequest = await req.json();
+    const { name, email, phone, service, message, state, utilityId, monthlyBill, consumption }: QuoteEmailRequest = await req.json();
 
-    console.log("📧 Processando solicitação de orçamento:", { name, email, phone, service, state });
+    console.log("📧 Processando solicitação de orçamento:", { name, email, phone, service, state, utilityId });
 
     // SEMPRE verificar e atualizar tarifas antes de processar orçamento
     const tariffsUpdated = await ensureTariffsAreUpdated();
@@ -98,14 +99,21 @@ const handler = async (req: Request): Promise<Response> => {
       console.warn("⚠️ Tarifas podem estar desatualizadas, mas continuando com o orçamento...");
     }
 
-    // Buscar informações da tarifa do estado se fornecido
+    // Buscar informações da tarifa se utilityId for fornecido (prioridade), ou por estado
     let tariffInfo = "";
-    if (state) {
-      const { data: tariff } = await supabase
+    if (utilityId || state) {
+      let query = supabase
         .from('solar_tariffs')
         .select('*')
-        .eq('state', state)
-        .eq('is_active', true)
+        .eq('is_active', true);
+      
+      if (utilityId) {
+        query = query.eq('utility_id', utilityId);
+      } else if (state) {
+        query = query.eq('state', state);
+      }
+      
+      const { data: tariff } = await query
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -116,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         tariffInfo = `
           <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
-            <h3 style="color: #0c4a6e; margin: 0 0 15px 0;">💡 Informações da Tarifa - ${state}</h3>
+            <h3 style="color: #0c4a6e; margin: 0 0 15px 0;">💡 Informações da Tarifa - ${tariff.state}</h3>
             <p style="margin: 5px 0; color: #0f172a;"><strong>Distribuidora:</strong> ${tariff.utility_company}</p>
             <p style="margin: 5px 0; color: #0f172a;"><strong>Tarifa de Energia:</strong> R$ ${tariff.energy_tariff.toFixed(4)}/kWh</p>
             <p style="margin: 5px 0; color: #0f172a;"><strong>Tarifa de Distribuição:</strong> R$ ${tariff.distribution_tariff.toFixed(4)}/kWh</p>

@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Calculator, ArrowRight, Zap, TrendingUp, Wifi, WifiOff, Settings2, BarChart3 } from "lucide-react";
 import heroImage from "@/assets/hero-solar.jpg";
 import { useSolarTariffs } from "@/hooks/useSolarTariffs";
+import { useUtilityCompanies } from "@/hooks/useUtilityCompanies";
 import { calculateSolarSavings, SolarSavings } from "@/utils/solarCalculations";
 
 
@@ -43,6 +44,7 @@ const ESTADOS = [
 export const Hero = () => {
   const [consumption, setConsumption] = useState("");
   const [selectedState, setSelectedState] = useState("SP"); // Começar com São Paulo como padrão
+  const [selectedUtilityId, setSelectedUtilityId] = useState("");
   const [isManualTariff, setIsManualTariff] = useState(false);
   const [manualTariff, setManualTariff] = useState("");
   const [savings, setSavings] = useState<SolarSavings | null>(null);
@@ -54,10 +56,12 @@ export const Hero = () => {
   
   const selectedStateData = ESTADOS.find(estado => estado.code === selectedState);
   
-  // Real-time tariffs from Supabase - buscar por estado diretamente
+  // Import utility companies hook
+  const { companies, loading: companiesLoading } = useUtilityCompanies(selectedState);
+  
+  // Real-time tariffs from Supabase - buscar por utility_id
   const { currentTariff, loading: tariffsLoading, error: tariffsError } = useSolarTariffs(
-    undefined, // Don't filter by region, prioritize state
-    selectedState
+    selectedUtilityId
   );
 
   // Real-time status indicator
@@ -98,7 +102,14 @@ export const Hero = () => {
     } else {
       setSavings(null);
     }
-  }, [currentTariff, consumption, selectedState, isManualTariff, manualTariff, selectedStateData]);
+  }, [currentTariff, consumption, selectedUtilityId, isManualTariff, manualTariff, selectedStateData]);
+
+  // Auto-select first utility company when state changes
+  useEffect(() => {
+    if (companies.length > 0 && !selectedUtilityId) {
+      setSelectedUtilityId(companies[0].utility_id);
+    }
+  }, [companies]);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
@@ -174,7 +185,10 @@ export const Hero = () => {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Selecione seu estado
                 </label>
-                <Select value={selectedState} onValueChange={setSelectedState}>
+                <Select value={selectedState} onValueChange={(value) => {
+                  setSelectedState(value);
+                  setSelectedUtilityId(""); // Reset utility selection when state changes
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Escolha seu estado" />
                   </SelectTrigger>
@@ -187,6 +201,34 @@ export const Hero = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Seleção da Concessionária */}
+              {companies.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Selecione sua concessionária
+                  </label>
+                  <Select 
+                    value={selectedUtilityId} 
+                    onValueChange={setSelectedUtilityId}
+                    disabled={companiesLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha sua concessionária" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map((company) => (
+                        <SelectItem key={company.utility_id} value={company.utility_id}>
+                          {company.utility_company}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Selecione a concessionária que atende sua região
+                  </p>
+                </div>
+              )}
 
               {/* Campo de Consumo */}
               <div>

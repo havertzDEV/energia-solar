@@ -6,6 +6,7 @@ export interface SolarTariff {
   region: string;
   state: string;
   utility_company: string;
+  utility_id: string;
   energy_tariff: number;
   distribution_tariff: number;
   icms_rate: number;
@@ -18,41 +19,33 @@ export interface SolarTariff {
   updated_at: string;
 }
 
-export const useSolarTariffs = (region?: string, state?: string) => {
-  const [tariffs, setTariffs] = useState<SolarTariff[]>([]);
+export const useSolarTariffs = (utilityId?: string) => {
   const [currentTariff, setCurrentTariff] = useState<SolarTariff | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchTariffs = async () => {
+    if (!utilityId) {
+      setCurrentTariff(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      let query = supabase
+      const { data, error: fetchError } = await supabase
         .from('solar_tariffs')
         .select('*')
-        .eq('is_active', true);
-
-      // Prioritize state filtering over region
-      if (state) {
-        query = query.eq('state', state);
-      } else if (region) {
-        query = query.eq('region', region);
-      }
-
-      const { data, error: fetchError } = await query.order('updated_at', { ascending: false });
+        .eq('utility_id', utilityId)
+        .eq('is_active', true)
+        .maybeSingle();
 
       if (fetchError) {
         setError(fetchError.message);
         return;
       }
 
-      setTariffs(data || []);
-      
-      // Set current tariff to the most recent one for the region
-      if (data && data.length > 0) {
-        setCurrentTariff(data[0]);
-      }
-
+      setCurrentTariff(data);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao buscar tarifas');
@@ -63,10 +56,12 @@ export const useSolarTariffs = (region?: string, state?: string) => {
 
   useEffect(() => {
     fetchTariffs();
-  }, [region, state]);
+  }, [utilityId]);
 
   // Setup realtime subscription
   useEffect(() => {
+    if (!utilityId) return;
+
     const channel = supabase
       .channel('solar_tariffs_changes')
       .on(
@@ -75,7 +70,7 @@ export const useSolarTariffs = (region?: string, state?: string) => {
           event: '*',
           schema: 'public',
           table: 'solar_tariffs',
-          filter: 'is_active=eq.true'
+          filter: `utility_id=eq.${utilityId}`
         },
         (payload) => {
           console.log('Tariff updated:', payload);
@@ -87,10 +82,9 @@ export const useSolarTariffs = (region?: string, state?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [region, state]);
+  }, [utilityId]);
 
   return {
-    tariffs,
     currentTariff,
     loading,
     error,

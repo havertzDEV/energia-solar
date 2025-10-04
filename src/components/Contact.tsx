@@ -24,6 +24,7 @@ export const Contact = () => {
     service: "",
     message: "",
     state: "",
+    utilityId: "",
     monthlyBill: 0,
     consumption: 0
   });
@@ -39,6 +40,7 @@ export const Contact = () => {
         body: {
           ...formData,
           state: formData.state || undefined,
+          utilityId: formData.utilityId || undefined,
           monthlyBill: formData.monthlyBill > 0 ? formData.monthlyBill : undefined,
           consumption: formData.consumption > 0 ? formData.consumption : undefined
         }
@@ -58,6 +60,7 @@ export const Contact = () => {
         service: "",
         message: "",
         state: "",
+        utilityId: "",
         monthlyBill: 0,
         consumption: 0
       });
