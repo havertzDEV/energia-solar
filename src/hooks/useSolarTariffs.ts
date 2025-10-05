@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SolarTariff {
@@ -24,7 +24,7 @@ export const useSolarTariffs = (utilityId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTariffs = async () => {
+  const fetchTariffs = useCallback(async () => {
     if (!utilityId) {
       setCurrentTariff(null);
       setLoading(false);
@@ -52,7 +52,7 @@ export const useSolarTariffs = (utilityId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [utilityId]);
 
   useEffect(() => {
     fetchTariffs();
@@ -60,8 +60,6 @@ export const useSolarTariffs = (utilityId?: string) => {
 
   // Setup realtime subscription
   useEffect(() => {
-    if (!utilityId) return;
-
     const channel = supabase
       .channel('solar_tariffs_changes')
       .on(
@@ -69,12 +67,16 @@ export const useSolarTariffs = (utilityId?: string) => {
         {
           event: '*',
           schema: 'public',
-          table: 'solar_tariffs',
-          filter: `utility_id=eq.${utilityId}`
+          table: 'solar_tariffs'
         },
         (payload) => {
           console.log('Tariff updated:', payload);
-          fetchTariffs(); // Refetch when data changes
+          // Only refetch if the change affects our current utility
+          const newData = payload.new as any;
+          const oldData = payload.old as any;
+          if (!utilityId || newData?.utility_id === utilityId || oldData?.utility_id === utilityId) {
+            fetchTariffs();
+          }
         }
       )
       .subscribe();
@@ -82,7 +84,7 @@ export const useSolarTariffs = (utilityId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [utilityId]);
+  }, [utilityId, fetchTariffs]);
 
   return {
     currentTariff,

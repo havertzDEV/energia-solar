@@ -106,10 +106,11 @@ export const Hero = () => {
 
   // Auto-select first utility company when state changes
   useEffect(() => {
-    if (companies.length > 0 && !selectedUtilityId) {
+    if (companies.length > 0) {
+      // Always select the first company when companies list changes
       setSelectedUtilityId(companies[0].utility_id);
     }
-  }, [companies]);
+  }, [companies, selectedState]);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
