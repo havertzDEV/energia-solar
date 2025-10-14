@@ -321,11 +321,22 @@ export const Hero = () => {
                 <div className="space-y-6">
                   {/* Resumo Principal */}
                   <div className="bg-accent/10 rounded-xl p-6 border border-accent/20">
-                    <div className="flex items-center gap-2 mb-4">
-                      <TrendingUp className="h-6 w-6 text-accent" />
-                      <h3 className="text-lg font-semibold text-accent">
-                        Seu Orçamento Personalizado
-                      </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-6 w-6 text-accent" />
+                        <h3 className="text-lg font-semibold text-accent">
+                          Seu Orçamento Personalizado
+                        </h3>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsManualTariff(!isManualTariff)}
+                        className="gap-2"
+                      >
+                        <Settings2 className="h-4 w-4" />
+                        Ajustar Tarifa
+                      </Button>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-4">
@@ -595,11 +606,22 @@ export const Hero = () => {
                   {/* Detalhamento de Impostos */}
                   {currentTariff && !isManualTariff && (
                     <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center gap-2 mb-4">
-                        <BarChart3 className="h-5 w-5 text-blue-600" />
-                        <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-                          Composição da Tarifa
-                        </h4>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <BarChart3 className="h-5 w-5 text-blue-600" />
+                          <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                            Composição da Tarifa
+                          </h4>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsManualTariff(true)}
+                          className="gap-2"
+                        >
+                          <Settings2 className="h-4 w-4" />
+                          Ajustar Tarifa
+                        </Button>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 text-sm">
