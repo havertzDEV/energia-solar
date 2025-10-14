@@ -123,41 +123,43 @@ export const Hero = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className={`${savings ? 'flex justify-center items-center' : 'grid lg:grid-cols-2 gap-12 items-center'}`}>
           {/* Left Column - Hero Content */}
-          <div className="text-center lg:text-left fade-in-up">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-              Energia Solar
-              <span className="block bg-gradient-solar bg-clip-text text-transparent">
-                Para Sua Casa
-              </span>
-            </h1>
-            
-            <p className="text-xl text-white/90 mb-8 max-w-2xl">
-              Economize até <strong>85% na sua conta de luz</strong> com sistemas 
-              de energia solar de alta qualidade. Invista no futuro sustentável da sua família.
-            </p>
+          {!savings && (
+            <div className="text-center lg:text-left fade-in-up">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                Energia Solar
+                <span className="block bg-gradient-solar bg-clip-text text-transparent">
+                  Para Sua Casa
+                </span>
+              </h1>
+              
+              <p className="text-xl text-white/90 mb-8 max-w-2xl">
+                Economize até <strong>85% na sua conta de luz</strong> com sistemas 
+                de energia solar de alta qualidade. Invista no futuro sustentável da sua família.
+              </p>
 
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">1</div>
-                <div className="text-sm text-white/80">Ano de garantia de Instalação</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">85%</div>
-                <div className="text-sm text-white/80">Economia Média</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">25</div>
-                <div className="text-sm text-white/80">Anos de Garantia do fabricante</div>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">1</div>
+                  <div className="text-sm text-white/80">Ano de garantia de Instalação</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">85%</div>
+                  <div className="text-sm text-white/80">Economia Média</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">25</div>
+                  <div className="text-sm text-white/80">Anos de Garantia do fabricante</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Right Column - Calculator */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-elegant slide-in-left">
+          <div className={`${savings ? 'bg-white/20 max-w-3xl w-full' : 'bg-white/95'} backdrop-blur-sm rounded-2xl p-8 shadow-elegant slide-in-left`}>
             <div className="flex items-center gap-3 mb-6">
               <Calculator className="h-8 w-8 text-primary" />
               <h2 className="text-2xl font-bold text-foreground">
