@@ -54,6 +54,13 @@ export const Hero = () => {
   const [customModuleQuantity, setCustomModuleQuantity] = useState("");
   const [inverterType, setInverterType] = useState("string");
   
+  // Estados para tarifa detalhada manual
+  const [isAdvancedTariff, setIsAdvancedTariff] = useState(false);
+  const [manualEnergyTariff, setManualEnergyTariff] = useState("");
+  const [manualDistributionTariff, setManualDistributionTariff] = useState("");
+  const [manualIcmsRate, setManualIcmsRate] = useState("");
+  const [manualPisCofinsRate, setManualPisCofinsRate] = useState("");
+  
   const selectedStateData = ESTADOS.find(estado => estado.code === selectedState);
   
   // Import utility companies hook
@@ -72,7 +79,30 @@ export const Hero = () => {
     if (consumption) {
       const kwh = parseFloat(consumption) || 0;
       
-      if (isManualTariff && manualTariff) {
+      if (isAdvancedTariff && manualEnergyTariff && manualDistributionTariff && manualIcmsRate && manualPisCofinsRate) {
+        // Use advanced manual tariff with all components
+        const energyTariff = parseFloat(manualEnergyTariff) || 0;
+        const distributionTariff = parseFloat(manualDistributionTariff) || 0;
+        const icmsRate = parseFloat(manualIcmsRate) / 100 || 0;
+        const pisCofinsRate = parseFloat(manualPisCofinsRate) / 100 || 0;
+        
+        if (energyTariff > 0 && distributionTariff > 0 && kwh > 0) {
+          const mockTariff = {
+            energy_tariff: energyTariff,
+            distribution_tariff: distributionTariff,
+            icms_rate: icmsRate,
+            pis_rate: pisCofinsRate / 2, // Divide PIS/COFINS igualmente
+            cofins_rate: pisCofinsRate / 2,
+            solar_irradiation: currentTariff?.solar_irradiation || 5.5,
+            installation_cost_per_kwp: currentTariff?.installation_cost_per_kwp || 4500,
+            utility_company: `Manual - ${selectedStateData?.name || "Estado Selecionado"}`
+          };
+          const result = calculateSolarSavings(0, kwh, mockTariff as any);
+          setSavings(result);
+        } else {
+          setSavings(null);
+        }
+      } else if (isManualTariff && manualTariff) {
         // Use manual tariff
         const manualTariffValue = parseFloat(manualTariff) || 0;
         if (manualTariffValue > 0 && kwh > 0) {
@@ -102,7 +132,7 @@ export const Hero = () => {
     } else {
       setSavings(null);
     }
-  }, [currentTariff, consumption, selectedUtilityId, isManualTariff, manualTariff, selectedStateData]);
+  }, [currentTariff, consumption, selectedUtilityId, isManualTariff, manualTariff, selectedStateData, isAdvancedTariff, manualEnergyTariff, manualDistributionTariff, manualIcmsRate, manualPisCofinsRate]);
 
   // Auto-select first utility company when state changes
   useEffect(() => {
@@ -604,7 +634,7 @@ export const Hero = () => {
                   </div>
 
                   {/* Detalhamento de Impostos */}
-                  {currentTariff && !isManualTariff && (
+                  {(currentTariff || isAdvancedTariff) && (
                     <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -616,41 +646,123 @@ export const Hero = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setIsManualTariff(true)}
+                          onClick={() => {
+                            if (!isAdvancedTariff && currentTariff) {
+                              // Preencher com valores atuais ao ativar
+                              setManualEnergyTariff(currentTariff.energy_tariff.toFixed(4));
+                              setManualDistributionTariff(currentTariff.distribution_tariff.toFixed(4));
+                              setManualIcmsRate((currentTariff.icms_rate * 100).toFixed(1));
+                              setManualPisCofinsRate(((currentTariff.pis_rate + currentTariff.cofins_rate) * 100).toFixed(1));
+                            }
+                            setIsAdvancedTariff(!isAdvancedTariff);
+                            setIsManualTariff(false);
+                          }}
                           className="gap-2"
                         >
                           <Settings2 className="h-4 w-4" />
-                          Ajustar Tarifa
+                          {isAdvancedTariff ? "Usar Tarifa Oficial" : "Ajustar Tarifa"}
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Tarifa de Energia:</p>
-                          <p className="font-medium">R$ {currentTariff.energy_tariff.toFixed(4)}/kWh</p>
+                      {isAdvancedTariff ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm text-muted-foreground mb-1 block">
+                                Tarifa de Energia (R$/kWh)
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.0001"
+                                placeholder="Ex: 0.4500"
+                                value={manualEnergyTariff}
+                                onChange={(e) => setManualEnergyTariff(e.target.value)}
+                                className="text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm text-muted-foreground mb-1 block">
+                                Tarifa de Distribuição (R$/kWh)
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.0001"
+                                placeholder="Ex: 0.3200"
+                                value={manualDistributionTariff}
+                                onChange={(e) => setManualDistributionTariff(e.target.value)}
+                                className="text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm text-muted-foreground mb-1 block">
+                                ICMS (%)
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                placeholder="Ex: 18.0"
+                                value={manualIcmsRate}
+                                onChange={(e) => setManualIcmsRate(e.target.value)}
+                                className="text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm text-muted-foreground mb-1 block">
+                                PIS/COFINS (%)
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                placeholder="Ex: 9.25"
+                                value={manualPisCofinsRate}
+                                onChange={(e) => setManualPisCofinsRate(e.target.value)}
+                                className="text-sm"
+                              />
+                            </div>
+                          </div>
+                          
+                          {savings && (
+                            <div className="mt-4 pt-4 border-t">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium text-blue-900 dark:text-blue-100">Tarifa Final Calculada:</span>
+                                <span className="text-lg font-bold text-blue-600">
+                                  R$ {savings.totalTariff.toFixed(4)}/kWh
+                                </span>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Tarifa de Distribuição:</p>
-                          <p className="font-medium">R$ {currentTariff.distribution_tariff.toFixed(4)}/kWh</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">ICMS:</p>
-                          <p className="font-medium">{(currentTariff.icms_rate * 100).toFixed(1)}%</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">PIS/COFINS:</p>
-                          <p className="font-medium">{((currentTariff.pis_rate + currentTariff.cofins_rate) * 100).toFixed(1)}%</p>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 pt-4 border-t">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium text-blue-900 dark:text-blue-100">Tarifa Final:</span>
-                          <span className="text-lg font-bold text-blue-600">
-                            R$ {savings.totalTariff.toFixed(4)}/kWh
-                          </span>
-                        </div>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Tarifa de Energia:</p>
+                              <p className="font-medium">R$ {currentTariff?.energy_tariff.toFixed(4)}/kWh</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Tarifa de Distribuição:</p>
+                              <p className="font-medium">R$ {currentTariff?.distribution_tariff.toFixed(4)}/kWh</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">ICMS:</p>
+                              <p className="font-medium">{(currentTariff?.icms_rate ? currentTariff.icms_rate * 100 : 0).toFixed(1)}%</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">PIS/COFINS:</p>
+                              <p className="font-medium">{(currentTariff ? (currentTariff.pis_rate + currentTariff.cofins_rate) * 100 : 0).toFixed(1)}%</p>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 pt-4 border-t">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium text-blue-900 dark:text-blue-100">Tarifa Final:</span>
+                              <span className="text-lg font-bold text-blue-600">
+                                R$ {savings?.totalTariff.toFixed(4)}/kWh
+                              </span>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
 
