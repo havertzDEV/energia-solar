@@ -250,8 +250,8 @@ export const Hero = () => {
                       <SelectValue placeholder="Escolha sua concessionária" />
                     </SelectTrigger>
                     <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company.utility_id} value={company.utility_id}>
+                      {companies.map((company, index) => (
+                        <SelectItem key={`${company.utility_id}-${index}`} value={company.utility_id}>
                           {company.utility_company}
                         </SelectItem>
                       ))}

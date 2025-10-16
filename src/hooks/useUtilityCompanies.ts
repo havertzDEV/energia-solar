@@ -36,7 +36,17 @@ export const useUtilityCompanies = (state?: string) => {
           .order('utility_company');
 
         if (error) throw error;
-        setCompanies(data || []);
+        
+        // Remove duplicates based on utility_company name
+        const uniqueCompanies = (data || []).reduce((acc: UtilityCompany[], current) => {
+          const exists = acc.find(item => item.utility_company === current.utility_company);
+          if (!exists) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+        
+        setCompanies(uniqueCompanies);
       } catch (err) {
         setError(err as Error);
         console.error('Error fetching utility companies:', err);
