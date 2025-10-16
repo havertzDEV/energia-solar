@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Calculator, ArrowRight, Zap, TrendingUp, Wifi, WifiOff, Settings2, BarChart3 } from "lucide-react";
+import { Calculator, ArrowRight, Zap, TrendingUp, Wifi, WifiOff, Settings2, BarChart3, Download } from "lucide-react";
 import heroImage from "@/assets/hero-solar.jpg";
 import { useSolarTariffs } from "@/hooks/useSolarTariffs";
 import { useUtilityCompanies } from "@/hooks/useUtilityCompanies";
 import { calculateSolarSavings, SolarSavings } from "@/utils/solarCalculations";
+import { generateBudgetPDF } from "@/utils/generateBudgetPDF";
+import { toast } from "sonner";
 
 
 // Estados brasileiros com suas regiões
@@ -364,15 +366,38 @@ export const Hero = () => {
                           Seu Orçamento Personalizado
                         </h3>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsCustomBudget(!isCustomBudget)}
-                        className="gap-2"
-                      >
-                        <Settings2 className="h-4 w-4" />
-                        Ajustar Orçamento
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const selectedStateData = ESTADOS.find(e => e.code === selectedState);
+                            generateBudgetPDF({
+                              savings,
+                              customSystemSize,
+                              customInvestment,
+                              customPayback,
+                              state: selectedStateData?.name || selectedState,
+                              utilityCompany: currentTariff?.utility_company || "Não informado",
+                              consumption
+                            });
+                            toast.success("PDF gerado com sucesso!");
+                          }}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Baixar PDF
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsCustomBudget(!isCustomBudget)}
+                          className="gap-2"
+                        >
+                          <Settings2 className="h-4 w-4" />
+                          Ajustar Orçamento
+                        </Button>
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-4">
