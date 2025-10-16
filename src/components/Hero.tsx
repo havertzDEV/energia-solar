@@ -54,6 +54,12 @@ export const Hero = () => {
   const [customModuleQuantity, setCustomModuleQuantity] = useState("");
   const [inverterType, setInverterType] = useState("string");
   
+  // Estados para ajuste de orçamento
+  const [isCustomBudget, setIsCustomBudget] = useState(false);
+  const [customSystemSize, setCustomSystemSize] = useState("");
+  const [customInvestment, setCustomInvestment] = useState("");
+  const [customPayback, setCustomPayback] = useState("");
+  
   // Estados para tarifa detalhada manual
   const [isAdvancedTariff, setIsAdvancedTariff] = useState(false);
   const [manualEnergyTariff, setManualEnergyTariff] = useState("");
@@ -361,11 +367,11 @@ export const Hero = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setIsManualTariff(!isManualTariff)}
+                        onClick={() => setIsCustomBudget(!isCustomBudget)}
                         className="gap-2"
                       >
                         <Settings2 className="h-4 w-4" />
-                        Ajustar Tarifa
+                        Ajustar Orçamento
                       </Button>
                     </div>
                     
@@ -385,18 +391,64 @@ export const Hero = () => {
                     </div>
 
                     <div className="border-t pt-4 space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Sistema recomendado:</span>
-                        <span className="font-semibold">{savings.systemSize} kWp</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Investimento estimado:</span>
-                        <span className="font-semibold">R$ {savings.investment.toLocaleString('pt-BR')}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Payback (retorno):</span>
-                        <span className="font-semibold text-green-600">{savings.payback} anos</span>
-                      </div>
+                      {isCustomBudget ? (
+                        <>
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Sistema recomendado:</span>
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={customSystemSize || savings.systemSize}
+                                onChange={(e) => setCustomSystemSize(e.target.value)}
+                                className="w-24 h-8 text-sm text-right"
+                              />
+                              <span className="text-sm font-semibold">kWp</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Investimento estimado:</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm font-semibold">R$</span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={customInvestment || savings.investment}
+                                onChange={(e) => setCustomInvestment(e.target.value)}
+                                className="w-32 h-8 text-sm text-right"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Payback (retorno):</span>
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                step="0.1"
+                                value={customPayback || savings.payback}
+                                onChange={(e) => setCustomPayback(e.target.value)}
+                                className="w-20 h-8 text-sm text-right"
+                              />
+                              <span className="text-sm font-semibold text-green-600">anos</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Sistema recomendado:</span>
+                            <span className="font-semibold">{customSystemSize || savings.systemSize} kWp</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Investimento estimado:</span>
+                            <span className="font-semibold">R$ {(parseFloat(customInvestment) || savings.investment).toLocaleString('pt-BR')}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Payback (retorno):</span>
+                            <span className="font-semibold text-green-600">{customPayback || savings.payback} anos</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
