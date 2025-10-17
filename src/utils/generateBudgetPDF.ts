@@ -33,11 +33,11 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('ISOLLAR ENERGY', pageWidth / 2, 20, { align: 'center' });
+  doc.text('ISOLLAR ENERGY ENGENHARIA', pageWidth / 2, 20, { align: 'center' });
   
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text('Engenharia em Energia Solar', pageWidth / 2, 30, { align: 'center' });
+  doc.text('Especialista em Energia Solar', pageWidth / 2, 30, { align: 'center' });
   
   yPosition = 50;
   
@@ -248,7 +248,7 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
-  doc.text('www.isollarenergy.com.br | contato@isollarenergy.com.br', pageWidth / 2, footerY + 20, { align: 'center' });
+  doc.text('www.isollarenergy.com.br | (98) 99161-6381', pageWidth / 2, footerY + 20, { align: 'center' });
   
   // Assinatura
   doc.setDrawColor(...textColor);
