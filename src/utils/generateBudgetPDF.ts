@@ -59,7 +59,7 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   });
   doc.text(`Data: ${currentDate}`, 20, yPosition);
   
-  yPosition += 10;
+  yPosition += 12;
   
   // Informações do Cliente
   doc.setFontSize(14);
@@ -67,7 +67,7 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   doc.setTextColor(...secondaryColor);
   doc.text('DADOS DO CLIENTE', 20, yPosition);
   
-  yPosition += 8;
+  yPosition += 10;
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -84,10 +84,10 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
     doc.text(label, 25, yPosition);
     doc.setFont('helvetica', 'normal');
     doc.text(value, 70, yPosition);
-    yPosition += 6;
+    yPosition += 7;
   });
   
-  yPosition += 5;
+  yPosition += 8;
   
   // Resumo Financeiro
   doc.setFontSize(14);
@@ -95,7 +95,7 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   doc.setTextColor(...secondaryColor);
   doc.text('RESUMO FINANCEIRO', 20, yPosition);
   
-  yPosition += 2;
+  yPosition += 8;
   
   autoTable(doc, {
     startY: yPosition,
@@ -116,7 +116,13 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
     },
   });
   
-  yPosition = (doc as any).lastAutoTable.finalY + 10;
+  yPosition = (doc as any).lastAutoTable.finalY + 15;
+  
+  // Verificar se há espaço suficiente na página
+  if (yPosition > pageHeight - 80) {
+    doc.addPage();
+    yPosition = 20;
+  }
   
   // Especificações do Sistema
   doc.setFontSize(14);
@@ -124,7 +130,7 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   doc.setTextColor(...secondaryColor);
   doc.text('ESPECIFICAÇÕES DO SISTEMA', 20, yPosition);
   
-  yPosition += 2;
+  yPosition += 8;
   
   const systemSize = parseFloat(data.customSystemSize || String(data.savings.systemSize));
   const investment = parseFloat(data.customInvestment || String(data.savings.investment));
@@ -166,7 +172,13 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
     },
   });
   
-  yPosition = (doc as any).lastAutoTable.finalY + 10;
+  yPosition = (doc as any).lastAutoTable.finalY + 15;
+  
+  // Verificar se há espaço suficiente na página
+  if (yPosition > pageHeight - 80) {
+    doc.addPage();
+    yPosition = 20;
+  }
   
   // Projeção de 25 anos
   doc.setFontSize(14);
@@ -174,7 +186,7 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   doc.setTextColor(...secondaryColor);
   doc.text('PROJEÇÃO DE ECONOMIA (25 ANOS)', 20, yPosition);
   
-  yPosition += 2;
+  yPosition += 8;
   
   const total25Years = data.savings.yearly * 25;
   const netSavings25Years = total25Years - investment;
@@ -202,15 +214,23 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   
   yPosition = (doc as any).lastAutoTable.finalY + 15;
   
+  // Verificar se há espaço para observações e rodapé
+  if (yPosition > pageHeight - 70) {
+    doc.addPage();
+    yPosition = 20;
+  }
+  
   // Observações
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
   doc.text('* Valores estimados baseados nas tarifas atuais e irradiação solar da região.', 20, yPosition);
-  yPosition += 4;
+  yPosition += 5;
   doc.text('* O payback pode variar conforme reajustes tarifários e condições climáticas.', 20, yPosition);
   
-  // Rodapé com assinatura
+  // Rodapé com assinatura (sempre na parte inferior da última página)
+  const currentPage = (doc as any).internal.getNumberOfPages();
+  doc.setPage(currentPage);
   const footerY = pageHeight - 40;
   
   doc.setDrawColor(...primaryColor);
