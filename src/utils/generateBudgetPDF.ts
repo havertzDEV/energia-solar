@@ -10,6 +10,8 @@ interface BudgetPDFData {
   state: string;
   utilityCompany: string;
   consumption: string;
+  isManualTariff?: boolean;
+  manualTariff?: string;
 }
 
 export const generateBudgetPDF = (data: BudgetPDFData) => {
@@ -128,16 +130,31 @@ export const generateBudgetPDF = (data: BudgetPDFData) => {
   const investment = parseFloat(data.customInvestment || String(data.savings.investment));
   const payback = parseFloat(data.customPayback || String(data.savings.payback));
   
+  // Calcular área aproximada
+  const approximateArea = (data.savings.moduleQuantity * 2.6).toFixed(0);
+  
+  // Adicionar informação de tarifa se for manual
+  const systemSpecsBody = [
+    ['Potência do Sistema', `${systemSize.toFixed(2)} kWp`],
+    ['Módulos Solares', `${data.savings.moduleQuantity} unidades de ${(data.savings.moduleUnitPower * 1000).toFixed(0)}W`],
+    ['Potência Total dos Módulos', `${(data.savings.moduleQuantity * data.savings.moduleUnitPower).toFixed(1)} kWp`],
+    ['Inversor', `${data.savings.inverterPower.toFixed(2)} kW`],
+    ['Área Aproximada Necessária', `${approximateArea} m²`],
+    ['Investimento Estimado', `R$ ${investment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+    ['Payback (Retorno)', `${payback.toFixed(1)} anos`],
+  ];
+  
+  // Adicionar informação de tarifa se for customizada
+  if (data.isManualTariff && data.manualTariff) {
+    systemSpecsBody.push(['Tarifa Utilizada', `R$ ${parseFloat(data.manualTariff).toFixed(4)}/kWh (Manual)`]);
+  } else {
+    systemSpecsBody.push(['Tarifa Utilizada', `R$ ${data.savings.totalTariff.toFixed(4)}/kWh (Automática)`]);
+  }
+  
   autoTable(doc, {
     startY: yPosition,
     head: [['Item', 'Especificação']],
-    body: [
-      ['Potência do Sistema', `${systemSize.toFixed(2)} kWp`],
-      ['Módulos Solares', `${data.savings.moduleQuantity} unidades de ${data.savings.moduleUnitPower}W`],
-      ['Inversor', `${data.savings.inverterPower.toFixed(2)} kW`],
-      ['Investimento Estimado', `R$ ${investment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-      ['Payback (Retorno)', `${payback.toFixed(1)} anos`],
-    ],
+    body: systemSpecsBody,
     theme: 'striped',
     headStyles: {
       fillColor: secondaryColor,

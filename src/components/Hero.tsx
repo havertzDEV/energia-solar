@@ -379,7 +379,9 @@ export const Hero = () => {
                               customPayback,
                               state: selectedStateData?.name || selectedState,
                               utilityCompany: currentTariff?.utility_company || "Não informado",
-                              consumption
+                              consumption,
+                              isManualTariff,
+                              manualTariff
                             });
                             toast.success("PDF gerado com sucesso!");
                           }}
