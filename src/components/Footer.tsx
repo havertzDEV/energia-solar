@@ -203,7 +203,7 @@ export const Footer = () => {
               <li className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-primary" />
                 <div className="text-white/80">
-                  <div>(98) 99161-6381</div>
+                  <div>(98) 99151-6381</div>
                   <div className="text-sm">WhatsApp</div>
                 </div>
               </li>
