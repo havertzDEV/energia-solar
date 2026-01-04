@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UtilityCompany {
+  id: string;
   utility_id: string;
   utility_company: string;
   energy_tariff: number;
@@ -30,18 +31,22 @@ export const useUtilityCompanies = (state?: string) => {
         setLoading(true);
         const { data, error } = await supabase
           .from('solar_tariffs')
-          .select('utility_id, utility_company, energy_tariff, distribution_tariff, icms_rate, pis_rate, cofins_rate, solar_irradiation, installation_cost_per_kwp')
+          .select('id, utility_id, utility_company, energy_tariff, distribution_tariff, icms_rate, pis_rate, cofins_rate, solar_irradiation, installation_cost_per_kwp')
           .eq('state', state)
           .eq('is_active', true)
           .order('utility_company');
 
         if (error) throw error;
         
-        // Remove duplicates based on utility_company name
+        // Remove duplicates based on utility_company name and ensure valid id
         const uniqueCompanies = (data || []).reduce((acc: UtilityCompany[], current) => {
           const exists = acc.find(item => item.utility_company === current.utility_company);
           if (!exists) {
-            acc.push(current);
+            acc.push({
+              ...current,
+              // Use id as fallback if utility_id is null
+              utility_id: current.utility_id || current.id
+            });
           }
           return acc;
         }, []);

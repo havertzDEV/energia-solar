@@ -146,7 +146,8 @@ export const Hero = () => {
   useEffect(() => {
     if (companies.length > 0) {
       // Always select the first company when companies list changes
-      setSelectedUtilityId(companies[0].utility_id);
+      const firstCompany = companies[0];
+      setSelectedUtilityId(firstCompany.utility_id || firstCompany.id || '');
     }
   }, [companies, selectedState]);
 
@@ -259,7 +260,10 @@ export const Hero = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {companies.map((company, index) => (
-                        <SelectItem key={`${company.utility_id}-${index}`} value={company.utility_id}>
+                        <SelectItem 
+                          key={`${company.id || company.utility_id}-${index}`} 
+                          value={company.utility_id || company.id || `company-${index}`}
+                        >
                           {company.utility_company}
                         </SelectItem>
                       ))}
