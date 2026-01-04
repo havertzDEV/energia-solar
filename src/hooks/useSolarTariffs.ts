@@ -33,12 +33,33 @@ export const useSolarTariffs = (utilityId?: string) => {
 
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
+      
+      // Try to find by utility_id first, then by id (for cases where utility_id is null)
+      let data = null;
+      let fetchError = null;
+      
+      // First try by utility_id
+      const result1 = await supabase
         .from('solar_tariffs')
         .select('*')
         .eq('utility_id', utilityId)
         .eq('is_active', true)
         .maybeSingle();
+      
+      if (result1.data) {
+        data = result1.data;
+      } else {
+        // Fallback: try by id (UUID)
+        const result2 = await supabase
+          .from('solar_tariffs')
+          .select('*')
+          .eq('id', utilityId)
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        data = result2.data;
+        fetchError = result2.error;
+      }
 
       if (fetchError) {
         setError(fetchError.message);
